@@ -627,6 +627,10 @@
                     img.className = 'carousel-image';
                     img.src = `https://loremflickr.com/600/320/${item.keyword}?random=${index + 1}`;
                     img.alt = item.keyword;
+                    img.onerror = () => {
+                        img.style.display = 'none';
+                        slide.style.background = 'linear-gradient(135deg, #fdf6f0 0%, #fae8e8 100%)';
+                    };
                     
                     const caption = document.createElement('div');
                     caption.className = 'carousel-caption';
