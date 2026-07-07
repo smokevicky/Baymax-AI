@@ -592,8 +592,20 @@
 
             recognition.onstart = () => {
                 isListening = true;
-                setFaceState('listening');
+                setFaceState('idle'); // Start as black idle when mic turns on
                 accumulatedTranscript = '';
+            };
+
+            recognition.onspeechstart = () => {
+                if (isAwake && !isSpeaking) {
+                    setFaceState('listening'); // Glow green when user speaks
+                }
+            };
+
+            recognition.onspeechend = () => {
+                if (isAwake && !isSpeaking) {
+                    setFaceState('idle'); // Turn black when user pauses or stops speaking
+                }
             };
 
             recognition.onresult = async (event) => {
@@ -774,7 +786,6 @@
 
         async function speak(text, callback) {
             stopSpeechQueue();
-            setFaceState('speaking');
             
             let rawSentences = text.split(/(?<=[.?!])\s+/);
             audioQueue = rawSentences
@@ -815,6 +826,9 @@
                 }
                 
                 currentAudio = new Audio(audioBlobUrl);
+                
+                // Glow blue exactly when the audio starts playing
+                setFaceState('speaking');
                 currentAudio.play();
                 
                 // Prefetch next sentence in queue in background
@@ -824,6 +838,9 @@
                 }
                 
                 currentAudio.onended = () => {
+                    // Turn black (idle) during the gaps between sentences
+                    setFaceState('idle');
+                    
                     // Clean up URL object
                     URL.revokeObjectURL(audioBlobUrl);
                     delete prefetchCache[queueIndex];
@@ -834,6 +851,7 @@
                 
             } catch (err) {
                 console.error("Audio playback error:", err);
+                setFaceState('idle');
                 queueIndex++;
                 playNextSentence(finalCallback);
             }
