@@ -173,6 +173,7 @@ async def chat_endpoint(request: ChatRequest):
         if session_id not in chat_sessions:
             chat_sessions[session_id] = {
                 "model_index": 0,
+                "uploaded_files": [],
                 "chat": client.chats.create(
                     model=MODEL_ORDER[0],
                     config=types.GenerateContentConfig(
@@ -254,6 +255,13 @@ async def clear_endpoint(request: ClearRequest):
     """
     session_id = request.session_id
     if session_id in chat_sessions:
+        # Delete all tracked uploaded files from Gemini cloud storage
+        for file_name in chat_sessions[session_id].get("uploaded_files", []):
+            try:
+                print(f"Deleting file reference from Gemini: {file_name}")
+                client.files.delete(name=file_name)
+            except Exception as e:
+                print(f"Failed to delete file {file_name} from Gemini: {e}")
         del chat_sessions[session_id]
         return {"status": "success", "message": f"Session {session_id} successfully cleared"}
     return {"status": "success", "message": f"Session {session_id} not active"}
@@ -290,6 +298,7 @@ async def upload_endpoint(
         if session_id not in chat_sessions:
             chat_sessions[session_id] = {
                 "model_index": 0,
+                "uploaded_files": [],
                 "chat": client.chats.create(
                     model=MODEL_ORDER[0],
                     config=types.GenerateContentConfig(
@@ -300,6 +309,7 @@ async def upload_endpoint(
             }
 
         session = chat_sessions[session_id]
+        session["uploaded_files"].append(uploaded_file.name)
         response = None
         prompt_message = message.strip() if message.strip() else "Please analyze this PDF report."
 
@@ -347,16 +357,11 @@ async def upload_endpoint(
                             raise e
                 raise e
 
-        # Cleanup local file and Gemini GenAI file storage reference
+        # Cleanup local file, keeping the GenAI cloud file reference active for active session history
         try:
             os.remove(temp_file_path)
         except Exception as local_err:
             print(f"Failed to remove local temporary file: {local_err}")
-            
-        try:
-            client.files.delete(name=uploaded_file.name)
-        except Exception as cloud_err:
-            print(f"Failed to delete Gemini file storage reference: {cloud_err}")
 
         # Post-process response to HTML and speech text
         sanitized_text = sanitize_markdown(raw_text)

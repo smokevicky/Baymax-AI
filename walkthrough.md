@@ -15,6 +15,7 @@ This walkthrough documents the implementation and verification details of **Baym
    - **Four-Model Fallback Chain with Backoff Retry**: Integrated an automatic model escalation sequence.
    - Added text sanitization to split the Gemini response into plain conversational spoken text (TTS) and structured Markdown-to-HTML formatting.
    - **Eliminated Audio Latency**: Converted `/api/tts` endpoint from chunked streaming to standard buffered response, reducing TTS playback startup delay from **4-5 seconds down to under 200 milliseconds**.
+   - **PDF Upload and Analysis (`/api/upload`)**: Built a secure multipart upload endpoint that accepts PDF reports, uploads them using the Gemini Files API, analyzes them natively using Gemini's multimodal capabilities, and cleans up the temporary files afterwards.
    
 2. **Frontend UI/UX (`templates/`)**:
    - **Home Page (`home.html`)**: Revamped the landing page into a stunning, single-viewport light-themed capabilities showcase:
@@ -31,14 +32,17 @@ This walkthrough documents the implementation and verification details of **Baym
        * Line 1: `Crafted with ❤️ by`
        * Line 2: `Divyansh Jena, Ayush Kar`
      - **Floating Widget Highlight**: Added responsive rules to hide the helper bubble on screens below 920px width, preventing button overlaps on tablets and narrow browser viewports.
-   - **Consultation Page (`consult.html`)**: Serves the active session log, controls, and siri-style blinking faceCard widget.
+   - **Consultation Page (`consult.html`)**:
+     - **Plus Upload Button**: Integrated a circular off-white plus button (`+`) next to the input message field to trigger file selection.
+     - **Dynamic Calling Greeting**: Configured dynamic greeting statements introducing himself first ("Hello, I'm Baymax") and prompt the user to upload PDF files when selecting "Lab Test Interpretation".
    - **Live Audio Synchronization**: Hooked speech recognition events and audio player states to toggle blinking and glows naturally.
    - **Sentence-Splitting & Next-Sentence Background Prefetching**: Divided long responses into sentences to stream audio with zero latency.
    - **Continuous Speech Recognition with Silence Detection**: Reconfigured listening to prevent early cut-off when the user pauses.
    - **Static Neural Voice Selector Dropdown**: Built a custom static selector linking high-quality Microsoft Edge Neural voices.
    
-3. **Configuration & Documentation**:
-   - Updated `requirements.txt` and wrote a detailed `README.md`.
+3. **Configuration & Dependencies**:
+   - Wrote a detailed `README.md`.
+   - Added `python-multipart` to `requirements.txt` to support FastAPI form file-uploads.
 
 ---
 

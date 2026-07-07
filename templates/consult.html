@@ -1082,8 +1082,12 @@
                 appendMessage('baymax', `<p>${ackText}</p>`);
                 
                 speak(ackText, async () => {
-                    appendMessage('user', query);
-                    await sendQueryToBackend(query);
+                    if (topic !== 'Labs') {
+                        appendMessage('user', query);
+                        await sendQueryToBackend(query);
+                    } else {
+                        startListening();
+                    }
                 });
             } else {
                 // Default immediate wakeup on direct consultation access
