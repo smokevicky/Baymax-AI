@@ -910,7 +910,7 @@
             }
 
             // Play Baymax Voice Greeting
-            const greetingText = "Hey! I'm Baymax AI, your personal healthcare companion. How can I help you today?";
+            const greetingText = "Hello! I am Baymax, your personal healthcare companion. To better assist you, may I know your name?";
             appendMessage('baymax', `<p>${greetingText}</p>`);
             
             speak(greetingText, () => {
@@ -1105,7 +1105,7 @@
                 chatLogs.innerHTML = '';
                 stopSpeechQueue();
                 
-                const clearText = "Session cleared. Let's restart. How can I help you today?";
+                const clearText = "Hello! I am Baymax, your personal healthcare companion. To better assist you, may I know your name?";
                 appendMessage('baymax', `<p>${clearText}</p>`);
                 speak(clearText, () => {
                     if (isAwake) {
