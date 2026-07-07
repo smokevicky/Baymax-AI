@@ -132,11 +132,25 @@ class ClearRequest(BaseModel):
     session_id: str
 
 @app.get("/", response_class=HTMLResponse)
-async def get_index(request: Request):
+async def get_home(request: Request):
     """
-    Serves the main single-page interface.
+    Serves the landing page dashboard.
     """
-    return templates.TemplateResponse(request=request, name="index.html")
+    return templates.TemplateResponse(request=request, name="home.html")
+
+@app.get("/home", response_class=HTMLResponse)
+async def get_home_alias(request: Request):
+    """
+    Serves the landing page dashboard (alias /home).
+    """
+    return templates.TemplateResponse(request=request, name="home.html")
+
+@app.get("/consult", response_class=HTMLResponse)
+async def get_consult(request: Request):
+    """
+    Serves the consultation session page.
+    """
+    return templates.TemplateResponse(request=request, name="consult.html")
 
 @app.post("/api/chat")
 async def chat_endpoint(request: ChatRequest):

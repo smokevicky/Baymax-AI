@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baymax AI - Your Personal Healthcare Companion</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f7f9fa;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --border-color: rgba(230, 235, 240, 0.8);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-color: #0c0c0d;
+            --baymax-red: #ff3b30;
+            --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        /* Facts Carousel */
+        .carousel-container {
+            width: 100%;
+            max-width: 600px;
+            height: 320px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 12px 24px -10px rgba(0,0,0,0.15);
+            background: #ffffff;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
+        .carousel-track {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+        }
+        .carousel-slide {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            box-sizing: border-box;
+        }
+        .carousel-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.95;
+            transition: filter 0.3s ease;
+        }
+        .carousel-slide:hover .carousel-image {
+            filter: brightness(0.9);
+        }
+        .carousel-caption {
+            width: 100%;
+            padding: 24px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%);
+            color: #ffffff;
+            box-sizing: border-box;
+            z-index: 2;
+            text-align: left;
+        }
+        .carousel-caption h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 0 0 6px 0;
+            color: var(--baymax-red);
+            font-weight: 700;
+        }
+        .carousel-caption p {
+            font-size: 1.05rem;
+            margin: 0;
+            line-height: 1.45;
+            font-weight: 500;
+        }
+        .carousel-indicators {
+            position: absolute;
+            bottom: 16px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 3;
+        }
+        .carousel-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .carousel-indicator.active {
+            background: #ffffff;
+            transform: scale(1.3);
+        }
+
+        /* Vitals Dashboard */
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 24px;
+            margin-bottom: 30px;
+            box-sizing: border-box;
+        }
+        .vital-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 18px;
+            text-align: left;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 130px;
+            box-sizing: border-box;
+        }
+        .vital-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--baymax-red);
+        }
+        .vital-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+        .vital-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .vital-icon {
+            font-size: 1.3rem;
+        }
+        .vital-value {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 4px 0;
+        }
+        .vital-unit {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .vital-status {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            width: fit-content;
+            margin-top: auto;
+        }
+        .status-optimal {
+            background: #ecfdf5;
+            color: #059669;
+        }
+        .status-warning {
+            background: #fffbeb;
+            color: #d97706;
+        }
+        
+        /* Floating Baymax Eye Widget */
+        /* Floating Baymax Body Widget */
+        .floating-baymax-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            z-index: 101;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .baymax-body-container {
+            width: 70px;
+            height: 100px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .floating-baymax-widget:hover .baymax-body-container {
+            transform: scale(1.1) translateY(-4px);
+        }
+        /* Head */
+        .baymax-head {
+            width: 22px;
+            height: 15px;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 50% / 60% 60% 40% 40%;
+            position: absolute;
+            top: 5px;
+            left: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+        .baymax-head-eye {
+            width: 3px;
+            height: 3px;
+            background: #000000;
+            border-radius: 50%;
+            animation: blink-anim 4s infinite;
+        }
+        .baymax-head-line {
+            width: 8px;
+            height: 0.5px;
+            background: #000000;
+        }
+        /* Torso */
+        .baymax-torso {
+            width: 44px;
+            height: 56px;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 50% 50% 45% 45% / 40% 40% 60% 60%;
+            position: absolute;
+            top: 17px;
+            left: 13px;
+            z-index: 3;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+        .baymax-heart-badge {
+            width: 5px;
+            height: 5px;
+            background: #e5e7eb;
+            border: 0.5px solid #d1d5db;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        /* Arms */
+        .baymax-arm {
+            width: 13px;
+            height: 42px;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px 8px 10px 10px / 20px 20px 20px 20px;
+            position: absolute;
+            top: 20px;
+            z-index: 2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            transform-origin: top center;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-sizing: border-box;
+        }
+        .baymax-arm.left {
+            left: 3px;
+            transform: rotate(8deg);
+        }
+        .baymax-arm.right {
+            right: 3px;
+            transform: rotate(-8deg);
+        }
+        .floating-baymax-widget:hover .baymax-arm.left {
+            transform: rotate(25deg);
+        }
+        .floating-baymax-widget:hover .baymax-arm.right {
+            transform: rotate(-25deg);
+        }
+        /* Legs */
+        .baymax-leg {
+            width: 14px;
+            height: 28px;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 4px 4px 8px 8px / 4px 4px 10px 10px;
+            position: absolute;
+            top: 65px;
+            z-index: 1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            box-sizing: border-box;
+        }
+        .baymax-leg.left {
+            left: 18px;
+        }
+        .baymax-leg.right {
+            right: 18px;
+        }
+        .floating-bubble {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: var(--accent-color);
+            color: #ffffff;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            animation: float-bob 3s ease-in-out infinite;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .floating-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: 22px;
+            border-width: 6px 6px 0;
+            border-style: solid;
+            border-color: var(--accent-color) transparent;
+            display: block;
+            width: 0;
+        }
+
+        /* Splash Screen Footer Credits */
+        .splash-footer {
+            margin-top: auto;
+            padding-top: 24px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.6;
+            font-weight: 500;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        .splash-footer strong {
+            color: var(--text-primary);
+        }
+
+        /* Animations */
+        @keyframes blink-anim {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+        @keyframes float-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.15); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.15); }
+            70% { transform: scale(1); }
+        }
+        .pulse-heart {
+            animation: heartbeat 1.5s infinite;
+            display: inline-block;
+        }
+
+        /* Responsive refinements */
+        @media (max-width: 900px) {
+            .vitals-grid {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 600px;
+            }
+        }
+        @media (max-width: 500px) {
+            .vitals-grid {
+                grid-template-columns: 1fr;
+                max-width: 100%;
+            }
+            .carousel-container {
+                height: 260px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Health Facts Carousel -->
+    <div class="carousel-container" id="factsCarousel">
+        <div class="carousel-track" id="carouselTrack">
+            <!-- Dynamically loaded slides -->
+        </div>
+        <div class="carousel-indicators" id="carouselIndicators">
+            <!-- Dynamically loaded indicators -->
+        </div>
+    </div>
+
+    <!-- Vitals Dashboard -->
+    <div class="vitals-grid">
+        <div class="vital-card" onclick="triggerQuickConsult('heart rate of 72 BPM', 'I noticed my heart rate is 72 BPM. Is that normal?')">
+            <div class="vital-header">
+                <span class="vital-title">Heart Rate</span>
+                <span class="vital-icon pulse-heart">❤️</span>
+            </div>
+            <div class="vital-value">72 <span class="vital-unit">BPM</span></div>
+            <div class="vital-status status-optimal">Optimal</div>
+        </div>
+        
+        <div class="vital-card" onclick="triggerQuickConsult('sleep patterns', 'I only got 8.2 hours of sleep last night. What are tips for deep sleep?')">
+            <div class="vital-header">
+                <span class="vital-title">Sleep Quality</span>
+                <span class="vital-icon">🌙</span>
+            </div>
+            <div class="vital-value">8.2 <span class="vital-unit">Hours</span></div>
+            <div class="vital-status status-optimal">Optimal</div>
+        </div>
+        
+        <div class="vital-card" onclick="triggerQuickConsult('daily hydration', 'I drank 1.8 liters of water today. Is that enough, or should I drink more?')">
+            <div class="vital-header">
+                <span class="vital-title">Hydration</span>
+                <span class="vital-icon">💧</span>
+            </div>
+            <div class="vital-value">1.8 <span class="vital-unit">/ 3.0L</span></div>
+            <div class="vital-status status-warning">Action Required</div>
+        </div>
+        
+        <div class="vital-card" onclick="triggerQuickConsult('daily steps activity', 'I completed 8,420 steps today. Is that active enough?')">
+            <div class="vital-header">
+                <span class="vital-title">Activity</span>
+                <span class="vital-icon">👟</span>
+            </div>
+            <div class="vital-value">8,420 <span class="vital-unit">steps</span></div>
+            <div class="vital-status status-optimal">Near Target</div>
+        </div>
+    </div>
+
+    <!-- Footer Credits -->
+    <div class="splash-footer">
+        <p>Crafted with ❤️ by <strong>Divyansh Jena, Ayush Kar</strong></p>
+        <p style="font-size: 0.75rem; opacity: 0.8; margin-top: 4px;">Supported by: Ashutosh Sahoo, Anshuman Parida</p>
+    </div>
+
+    <!-- Floating Baymax Full Body Consultation Trigger -->
+    <div class="floating-baymax-widget" id="floatingWidget" onclick="triggerQuickConsult('general checkup', '')">
+        <div class="floating-bubble" style="bottom: 110px;">Not feeling well? Consult with me here!</div>
+        <div class="baymax-body-container">
+            <!-- Left Arm -->
+            <div class="baymax-arm left"></div>
+            <!-- Right Arm -->
+            <div class="baymax-arm right"></div>
+            <!-- Left Leg -->
+            <div class="baymax-leg left"></div>
+            <!-- Right Leg -->
+            <div class="baymax-leg right"></div>
+            <!-- Torso -->
+            <div class="baymax-torso">
+                <div class="baymax-heart-badge"></div>
+            </div>
+            <!-- Head -->
+            <div class="baymax-head">
+                <div class="baymax-head-eye"></div>
+                <div class="baymax-head-line"></div>
+                <div class="baymax-head-eye"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        let slideInterval;
+
+        async function initHealthFactsCarousel() {
+            try {
+                const response = await fetch('/api/facts');
+                const facts = await response.json();
+                
+                const track = document.getElementById('carouselTrack');
+                const indicators = document.getElementById('carouselIndicators');
+                
+                if (!facts || facts.length === 0) return;
+                
+                track.innerHTML = '';
+                indicators.innerHTML = '';
+                
+                facts.forEach((item, index) => {
+                    // Slide
+                    const slide = document.createElement('div');
+                    slide.className = 'carousel-slide';
+                    
+                    const img = document.createElement('img');
+                    img.className = 'carousel-image';
+                    img.src = `https://loremflickr.com/600/320/${item.keyword}?random=${index + 1}`;
+                    img.alt = item.keyword;
+                    
+                    const caption = document.createElement('div');
+                    caption.className = 'carousel-caption';
+                    
+                    const title = document.createElement('h3');
+                    title.textContent = "Did You Know?";
+                    
+                    const text = document.createElement('p');
+                    text.textContent = item.fact;
+                    
+                    caption.appendChild(title);
+                    caption.appendChild(text);
+                    slide.appendChild(img);
+                    slide.appendChild(caption);
+                    track.appendChild(slide);
+                    
+                    // Indicator
+                    const indicator = document.createElement('div');
+                    indicator.className = `carousel-indicator ${index === 0 ? 'active' : ''}`;
+                    indicator.onclick = () => goToSlide(index);
+                    indicators.appendChild(indicator);
+                });
+                
+                startCarouselAutoPlay(facts.length);
+            } catch (e) {
+                console.error("Failed to load health facts carousel:", e);
+            }
+        }
+
+        function goToSlide(index) {
+            const track = document.getElementById('carouselTrack');
+            const indicators = document.querySelectorAll('.carousel-indicator');
+            
+            currentSlide = index;
+            if (track) {
+                track.style.transform = `translateX(-${index * 100}%)`;
+            }
+            
+            indicators.forEach((ind, i) => {
+                ind.classList.toggle('active', i === index);
+            });
+        }
+
+        function startCarouselAutoPlay(slideCount) {
+            if (slideInterval) clearInterval(slideInterval);
+            slideInterval = setInterval(() => {
+                let nextSlide = (currentSlide + 1) % slideCount;
+                goToSlide(nextSlide);
+            }, 6000);
+        }
+
+        function triggerQuickConsult(topic, queryText) {
+            // Redirect to consult page with parameters
+            let url = '/consult';
+            if (queryText) {
+                url += `?topic=${encodeURIComponent(topic)}&query=${encodeURIComponent(queryText)}`;
+            }
+            window.location.href = url;
+        }
+
+        window.addEventListener('load', () => {
+            initHealthFactsCarousel();
+        });
+    </script>
+</body>
+</html>
