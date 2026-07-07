@@ -47,6 +47,36 @@ SYSTEM_INSTRUCTION = (
     "For general symptom checkups, follow up by asking clarifying questions one by one about timelines, severity, and compounding symptoms. Always include a compassionate closing or instructions to seek emergency care for red-flag symptoms."
 )
 
+def sanitize_markdown(text: str) -> str:
+    """
+    Sanitizes raw markdown to ensure that inline lists (asterisks and numbered items)
+    are formatted onto separate lines, and inserts blank lines preceding list and table blocks
+    so that Python-Markdown parses them correctly into HTML.
+    """
+    # 1. Convert inline bullets (e.g. " * ") to line breaks
+    text = re.sub(r'\s+\*\s+', '\n* ', text)
+    
+    # 2. Convert inline numbered items (e.g. " 1. ", " 2. ") to line breaks
+    text = re.sub(r'\s+(\d+)\.\s+', r'\n\1. ', text)
+    
+    # 3. Insert blank lines before lists/tables if not present
+    lines = text.split("\n")
+    formatted_lines = []
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        is_list_item = stripped.startswith("* ") or stripped.startswith("- ") or re.match(r"^\d+\.\s", stripped)
+        is_table_row = stripped.startswith("|")
+        
+        if (is_list_item or is_table_row) and i > 0:
+            prev_line = formatted_lines[-1].strip()
+            # If the previous line is not empty and is not itself a list/table item, add a blank line
+            if prev_line and not prev_line.startswith("* ") and not prev_line.startswith("- ") and not re.match(r"^\d+\.\s", prev_line) and not prev_line.startswith("|"):
+                formatted_lines.append("")
+                
+        formatted_lines.append(line)
+        
+    return "\n".join(formatted_lines)
+
 def clean_text_for_tts(text: str) -> str:
     """
     Cleans markdown and special formatting from Gemini's response to generate
@@ -173,7 +203,8 @@ async def chat_endpoint(request: ChatRequest):
                 raise e
         
         # Convert raw text to HTML for presentation
-        display_html = markdown.markdown(raw_text, extensions=['tables', 'fenced_code'])
+        sanitized_text = sanitize_markdown(raw_text)
+        display_html = markdown.markdown(sanitized_text, extensions=['tables', 'fenced_code'])
         # Convert raw text to clean speech synthesis structure
         tts_text = clean_text_for_tts(raw_text)
         
