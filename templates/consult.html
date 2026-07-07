@@ -740,7 +740,7 @@
                 window.speechSynthesis.speak(triggerGreeting);
             }
 
-            const greetingText = "Hello! I am Baymax, your personal healthcare companion. To better assist you, may I know your name?";
+            const greetingText = "Hello, I'm Baymax. Your personal healthcare companion. To better assist you, may I know your name?";
             appendMessage('baymax', `<p>${greetingText}</p>`);
             
             speak(greetingText, () => {
@@ -976,13 +976,13 @@
                     window.speechSynthesis.speak(triggerGreeting);
                 }
                 
-                let ackText = "Hello! How can I help you manage your health today?";
+                let ackText = "Hello, I'm Baymax. How can I help you manage your health today?";
                 if (topic === 'Doctor') {
-                    ackText = "Hello! Let's start your clinical health check.";
+                    ackText = "Hello, I'm Baymax. Let's start your clinical health check.";
                 } else if (topic === 'Labs') {
-                    ackText = "Hello! Let's interpret your lab test results.";
+                    ackText = "Hello, I'm Baymax. Let's interpret your lab test results.";
                 } else if (topic === 'Symptoms') {
-                    ackText = "Hello! Let's check your symptoms.";
+                    ackText = "Hello, I'm Baymax. Let's check your symptoms.";
                 }
                 appendMessage('baymax', `<p>${ackText}</p>`);
                 
