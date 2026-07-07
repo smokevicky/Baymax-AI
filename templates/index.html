@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baymax AI - Your Personal Healthcare Companion</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f7f9fa;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(230, 235, 240, 0.8);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-color: #0c0c0d;
+            --baymax-red: #ff3b30;
+            --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at center, #ffffff 0%, #f4f6f8 100%);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-color);
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--baymax-red);
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .btn-reset {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .btn-reset:hover {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .select-voice {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            max-width: 220px;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .select-voice:hover, .select-voice:focus {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+
+        /* Splash Screen Overlay */
+        .splash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
+        }
+
+        .splash-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-logo {
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .splash-eyes {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .splash-eye {
+            width: 24px;
+            height: 24px;
+            background: #000000;
+            border-radius: 50%;
+        }
+
+        .splash-line {
+            width: 60px;
+            height: 2.5px;
+            background: #000000;
+        }
+
+        .splash-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .splash-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            text-align: center;
+            max-width: 320px;
+            line-height: 1.5;
+        }
+
+        .btn-wake {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border: none;
+            padding: 16px 36px;
+            border-radius: 9999px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-wake:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.25);
+        }
+
+        .btn-wake:active {
+            transform: translateY(0);
+        }
+
+        /* Main AI Interface Canvas */
+        .baymax-stage {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            max-width: 850px;
+            padding: 0 20px 24px 20px;
+            margin: 0 auto;
+            height: calc(100vh - 85px);
+            overflow: hidden;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Siri Baymax Container - Center Bottom Floating */
+        .siri-container {
+            position: absolute;
+            bottom: 95px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Glassmorphic Baymax Pill */
+        .siri-baymax-pill {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), var(--shadow-sm);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(12px);
+        }
+
+        .siri-container:hover .siri-baymax-pill {
+            transform: scale(1.03) translateY(-1px);
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.12), var(--shadow-md);
+        }
+
+        /* Baymax Eyes */
+        .siri-baymax-eye {
+            width: 20px;
+            height: 20px;
+            background-color: #0c0d0e;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Connector Area */
+        .siri-baymax-connector {
+            width: 80px;
+            height: 32px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+        }
+
+        /* Classic Baymax line (idle) */
+        .siri-classic-line {
+            width: 100%;
+            height: 2px;
+            background-color: #0c0d0e;
+            border-radius: 1px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Siri voice waves container (constrains waves between eyes) */
+        .siri-voice-waves {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: space-evenly;
+            padding: 0 8px;
+        }
+
+        /* Colored Siri waves */
+        .siri-wave {
+            width: 3.5px;
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        /* Colors and morphs for Siri Waveforms */
+        .siri-w-1 {
+            background-color: #3b82f6; /* Blue */
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
+            animation: siri-wave-pulse 0.7s ease-in-out infinite alternate;
+        }
+
+        .siri-w-2 {
+            background-color: #ec4899; /* Pink */
+            box-shadow: 0 0 8px rgba(236, 72, 153, 0.8);
+            animation: siri-wave-pulse 0.45s ease-in-out infinite alternate;
+            animation-delay: 0.1s;
+        }
+
+        .siri-w-3 {
+            background-color: #14b8a6; /* Teal */
+            box-shadow: 0 0 8px rgba(20, 184, 166, 0.8);
+            animation: siri-wave-pulse 0.6s ease-in-out infinite alternate;
+            animation-delay: 0.2s;
+        }
+
+        .siri-w-4 {
+            background-color: #8b5cf6; /* Purple */
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.8);
+            animation: siri-wave-pulse 0.5s ease-in-out infinite alternate;
+            animation-delay: 0.15s;
+        }
+
+        @keyframes siri-wave-pulse {
+            0% { transform: scaleY(0.4); height: 4px; }
+            100% { transform: scaleY(2.2); height: 16px; }
+        }
+
+        /* Faster and larger pulses when speaking */
+        .siri-container.speaking .siri-w-1 { animation-duration: 0.3s; height: 22px; }
+        .siri-container.speaking .siri-w-2 { animation-duration: 0.2s; height: 22px; }
+        .siri-container.speaking .siri-w-3 { animation-duration: 0.28s; height: 22px; }
+        .siri-container.speaking .siri-w-4 { animation-duration: 0.24s; height: 22px; }
+
+        /* Baymax Eyes Glow Animations */
+        .siri-container.listening .siri-baymax-eye {
+            background-color: #0f766e;
+            box-shadow: 0 0 14px 3px rgba(20, 184, 166, 0.65);
+        }
+
+        .siri-container.speaking .siri-baymax-eye {
+            background-color: #1e3a8a;
+            box-shadow: 0 0 16px 4px rgba(59, 130, 246, 0.7);
+            animation: eye-speak-pulse 0.4s ease-in-out infinite alternate;
+        }
+
+        @keyframes eye-speak-pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.12); }
+        }
+
+        /* Tooltip text */
+        .siri-tooltip {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            border-radius: 9999px;
+            box-shadow: var(--shadow-sm);
+            opacity: 0.95;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+            backdrop-filter: blur(8px);
+        }
+
+        /* Error Notification Banner */
+        .error-banner {
+            width: 100%;
+            background-color: #fef2f2;
+            border: 1px solid #fee2e2;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Conversation Log - Full size layout */
+        .chat-container {
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            backdrop-filter: blur(16px);
+        }
+
+        .chat-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .chat-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.75px;
+        }
+
+        .chat-logs {
+            flex: 1;
+            padding: 24px 24px 80px 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 14px 20px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: fade-in 0.3s ease;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.baymax {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Structured Markdown/HTML classes */
+        .message.baymax p {
+            margin-bottom: 8px;
+        }
+
+        .message.baymax p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message.baymax ul, .message.baymax ol {
+            margin: 8px 0 8px 20px;
+        }
+
+        .message.baymax li {
+            margin-bottom: 4px;
+        }
+
+        /* Fallback Text Input */
+        .input-bar {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            background: #ffffff;
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-bar input {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+            outline: none;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-bar input:focus {
+            border-color: var(--text-primary);
+        }
+
+        .btn-send {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0 24px;
+            border-radius: 9999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-send:hover {
+            opacity: 0.9;
+        }
+
+        /* Waveform mute controls overlay */
+        .mic-instruction {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 16px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Media Queries for Responsive Design */
+        @media (max-width: 900px) {
+            .baymax-stage {
+                padding: 0 16px 16px 16px;
+                max-width: 100%;
+                height: calc(100vh - 75px);
+            }
+            .chat-container {
+                height: 100%;
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .splash-title {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash Wakeup Page -->
+    <div class="splash-overlay" id="splashScreen">
+        <div class="splash-logo">
+            <div class="splash-eyes">
+                <div class="splash-eye"></div>
+                <div class="splash-line"></div>
+                <div class="splash-eye"></div>
+            </div>
+        </div>
+        <h1 class="splash-title">Baymax AI</h1>
+        <p class="splash-subtitle">A compassionate, highly efficient robotic healthcare companion designed to assist with your well-being.</p>
+        <button class="btn-wake" id="wakeBtn" onclick="wakeUpBaymax()">Wake Up Baymax</button>
+    </div>
+
+    <header>
+        <div class="logo">
+            <div class="logo-dot"></div>
+            Baymax AI
+        </div>
+        <div class="header-controls">
+            <select id="voiceSelect" class="select-voice" title="Choose Voice"></select>
+            <button class="btn-reset" onclick="resetConversation()">Clear Session</button>
+        </div>
+    </header>
+
+    <main class="baymax-stage">
+        
+        <!-- Error Banner -->
+        <div class="error-banner" id="errorBanner">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style="flex-shrink: 0;">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span id="errorMessage">Microphone permission denied. Using manual text mode.</span>
+        </div>
+
+        <!-- The Siri-style Voice Widget -->
+        <div class="siri-container" id="faceCard" onclick="toggleSpeechControl()">
+            <div class="siri-baymax-pill">
+                <!-- Left Eye -->
+                <div class="siri-baymax-eye left" id="leftEye"></div>
+                
+                <!-- Connecting Waveform Area -->
+                <div class="siri-baymax-connector" id="siriConnector">
+                    <!-- Classic solid line (visible when idle/asleep) -->
+                    <div class="siri-classic-line" id="siriClassicLine"></div>
+                    
+                    <!-- Siri waves (visible/animating when listening/speaking) -->
+                    <div class="siri-voice-waves" id="siriVoiceWaves">
+                        <div class="siri-wave siri-w-1"></div>
+                        <div class="siri-wave siri-w-2"></div>
+                        <div class="siri-wave siri-w-3"></div>
+                        <div class="siri-wave siri-w-4"></div>
+                    </div>
+                </div>
+                
+                <!-- Right Eye -->
+                <div class="siri-baymax-eye right" id="rightEye"></div>
+            </div>
+            <div class="siri-tooltip" id="siriTooltip">Asleep - Click Wake Up</div>
+        </div>
+
+        <!-- Scrollable Conversation Logs -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="chat-title">Consultation Log</div>
+            </div>
+            <div class="chat-logs" id="chatLogs">
+                <!-- Messages will load dynamically here -->
+            </div>
+            
+            <!-- Fallback text input bar -->
+            <form class="input-bar" id="inputForm" onsubmit="handleTextSubmit(event)">
+                <input type="text" id="userInput" placeholder="Type a message or symptom here..." autocomplete="off">
+                <button type="submit" class="btn-send">Send</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // Session ID generator
+        const sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
+        
+        // Element selectors
+        const splashScreen = document.getElementById('splashScreen');
+        const siriClassicLine = document.getElementById('siriClassicLine');
+        const siriVoiceWaves = document.getElementById('siriVoiceWaves');
+        const siriTooltip = document.getElementById('siriTooltip');
+        const chatLogs = document.getElementById('chatLogs');
+        const userInput = document.getElementById('userInput');
+        const errorBanner = document.getElementById('errorBanner');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // State variables
+        let isAwake = false;
+        let isListening = false;
+        let isSpeaking = false;
+        let voiceGreetingPlayed = false;
+        let autoRestartRecognition = true;
+
+        // Web Speech APIs
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        const voiceSelect = document.getElementById('voiceSelect');
+        const edgeVoices = [
+            { name: "en-US-AndrewNeural", label: "Andrew (Male, US) - Baymax Style" },
+            { name: "en-US-GuyNeural", label: "Guy (Male, US) - Soft & Calm" },
+            { name: "en-US-BrianNeural", label: "Brian (Male, UK) - Deep Male" },
+            { name: "en-US-JennyNeural", label: "Jenny (Female, US) - Google US English Style" },
+            { name: "en-US-AnaNeural", label: "Ana (Female, US) - Soft Female" }
+        ];
+
+        function loadVoices() {
+            voiceSelect.innerHTML = '';
+            edgeVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = voice.label;
+                
+                if (localStorage.getItem('baymax_voice') === voice.name) {
+                    option.selected = true;
+                }
+                voiceSelect.appendChild(option);
+            });
+            
+            // Set default voice on load
+            if (!localStorage.getItem('baymax_voice')) {
+                voiceSelect.value = "en-US-AndrewNeural";
+                localStorage.setItem('baymax_voice', "en-US-AndrewNeural");
+            }
+        }
+
+        loadVoices();
+        
+        // Preview when selected voice changes
+        voiceSelect.addEventListener('change', () => {
+            localStorage.setItem('baymax_voice', voiceSelect.value);
+            localStorage.setItem('baymax_voice_chosen', 'true');
+            speak("Hello. I am Baymax, your personal healthcare companion.");
+        });
+
+        // Initialize Speech Recognition
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isListening = true;
+                setFaceState('listening');
+            };
+
+            recognition.onresult = async (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (transcript.trim()) {
+                    appendMessage('user', transcript);
+                    await sendQueryToBackend(transcript);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.warn('Speech recognition error:', event.error);
+                if (event.error === 'not-allowed') {
+                    showError('Microphone permission denied. Please allow microphone access in your browser or type.');
+                    autoRestartRecognition = false;
+                    setFaceState('idle');
+                } else if (event.error === 'no-speech') {
+                    // Timeout with no speech, quiet restart if allowed
+                    if (autoRestartRecognition && isAwake && !isSpeaking) {
+                        startRecognitionQuietly();
+                    }
+                } else {
+                    setFaceState('idle');
+                }
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                // Automatically restart if we should be continuously listening
+                if (autoRestartRecognition && isAwake && !isSpeaking) {
+                    startRecognitionQuietly();
+                } else if (!isSpeaking) {
+                    setFaceState('idle');
+                }
+            };
+        } else {
+            console.warn('Web Speech Recognition API is not supported on this browser.');
+            showError('Speech recognition is not supported in this browser. Please type.');
+        }
+
+        // Update UI based on Baymax State
+        function setFaceState(state) {
+            const faceCard = document.getElementById('faceCard');
+            const siriClassicLine = document.getElementById('siriClassicLine');
+            const siriVoiceWaves = document.getElementById('siriVoiceWaves');
+            const siriTooltip = document.getElementById('siriTooltip');
+            
+            if (!faceCard) return;
+            
+            // Toggle animation and state class on the container to trigger eye glows
+            faceCard.className = 'siri-container';
+            faceCard.classList.add(state);
+            
+            if (state === 'listening' || state === 'speaking') {
+                if (siriClassicLine) siriClassicLine.style.opacity = '0';
+                if (siriVoiceWaves) siriVoiceWaves.style.display = 'flex';
+                
+                if (siriTooltip) {
+                    if (state === 'listening') {
+                        siriTooltip.innerText = 'Listening... Press Space to mute';
+                    } else {
+                        siriTooltip.innerText = 'Speaking... Press Space to interrupt';
+                    }
+                }
+            } else {
+                if (siriClassicLine) siriClassicLine.style.opacity = '1';
+                if (siriVoiceWaves) siriVoiceWaves.style.display = 'none';
+                
+                if (siriTooltip) {
+                    if (state === 'idle') {
+                        siriTooltip.innerText = 'Idle - Click or Space to speak';
+                    } else if (state === 'asleep') {
+                        siriTooltip.innerText = 'Asleep - Click Wake Up';
+                    }
+                }
+            }
+        }
+
+        // Keyboard shortcut: Spacebar to toggle microphone or interrupt AI
+        window.addEventListener('keydown', (event) => {
+            // Only trigger if we are not typing in the text input
+            if (document.activeElement === userInput) return;
+            
+            if (event.code === 'Space') {
+                event.preventDefault(); // Prevent page scrolling
+                toggleSpeechControl();
+            }
+        });
+
+        // Handle errors gracefully
+        function showError(message) {
+            errorMessage.innerText = message;
+            errorBanner.style.display = 'flex';
+        }
+
+        // Start listening (with permission prompt)
+        function startListening() {
+            if (!recognition) return;
+            autoRestartRecognition = true;
+            try {
+                recognition.start();
+            } catch (e) {
+                // Already started
+            }
+        }
+
+        // Quietly restart without throwing if already running
+        function startRecognitionQuietly() {
+            if (!recognition || isListening) return;
+            try {
+                recognition.start();
+            } catch (e) {}
+        }
+
+        // Stop listening
+        function stopListening() {
+            if (!recognition) return;
+            autoRestartRecognition = false;
+            try {
+                recognition.stop();
+            } catch (e) {
+                // Not running
+            }
+        }
+
+        // Wake up activation sequence triggered on button click
+        function wakeUpBaymax() {
+            isAwake = true;
+            splashScreen.classList.add('hidden');
+            setFaceState('idle');
+
+            // Force unlock SpeechSynthesis on mobile devices/browsers
+            if (window.speechSynthesis) {
+                const triggerGreeting = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(triggerGreeting);
+            }
+
+            // Play Baymax Voice Greeting
+            const greetingText = "Hey! I'm Baymax AI, your personal healthcare companion. How can I help you today?";
+            appendMessage('baymax', `<p>${greetingText}</p>`);
+            
+            speak(greetingText, () => {
+                // Activate mic immediately after greeting finishes
+                startListening();
+            });
+        }
+
+        // Toggle speech control when user clicks the face card
+        function toggleSpeechControl() {
+            if (!isAwake) return;
+            
+            if (isListening) {
+                stopListening();
+                setFaceState('idle');
+                appendMessage('baymax', '<p>Microphone deactivated. You can still type, or tap my face to speak again.</p>');
+            } else {
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio = null;
+                }
+                isSpeaking = false;
+                startListening();
+            }
+        }
+
+        let currentAudio = null;
+
+        // Speech synthesis utterance caller
+        function speak(text, onCompleteCallback) {
+            // Stop ongoing speech
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            isSpeaking = true;
+            setFaceState('speaking');
+
+            const selectedVoice = voiceSelect.value || "en-US-AndrewNeural";
+            const ttsUrl = `/api/tts?text=${encodeURIComponent(text)}&voice=${selectedVoice}`;
+
+            currentAudio = new Audio(ttsUrl);
+
+            currentAudio.onended = () => {
+                isSpeaking = false;
+                setFaceState('idle');
+                if (onCompleteCallback) {
+                    onCompleteCallback();
+                }
+            };
+
+            currentAudio.onerror = (e) => {
+                console.error('Audio playback error:', e);
+                isSpeaking = false;
+                setFaceState('idle');
+                if (onCompleteCallback) {
+                    onCompleteCallback();
+                }
+            };
+
+            currentAudio.play().catch(err => {
+                console.warn("Autoplay blocked or failed:", err);
+                isSpeaking = false;
+                setFaceState('idle');
+                if (onCompleteCallback) {
+                    onCompleteCallback();
+                }
+            });
+        }
+
+        // Send query text payload to the FastAPI backend API
+        async function sendQueryToBackend(text) {
+            // Stop listening to prevent transcription of self-speech
+            stopListening();
+            setFaceState('idle');
+
+            try {
+                // Add loading indicator bubble
+                const loadingBubble = appendMessage('baymax', '<span style="color: #64748b; font-style: italic;">Processing diagnosis factors...</span>');
+
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: text
+                    })
+                });
+
+                // Remove loading bubble
+                loadingBubble.remove();
+
+                if (!response.ok) {
+                    throw new Error('API server returned error');
+                }
+
+                const data = await response.json();
+                
+                // Add Gemini response text to chat logs
+                appendMessage('baymax', data.display_html);
+
+                // Play reply spoken out loud
+                speak(data.tts_text, () => {
+                    // Turn mic back on if permission is intact
+                    if (isAwake && !isSpeaking) {
+                        startListening();
+                    }
+                });
+
+            } catch (err) {
+                console.error('Error fetching chat response:', err);
+                appendMessage('baymax', '<p style="color: #ef4444;">I am having trouble connecting to my diagnostic servers. Please check your network connection.</p>');
+                
+                speak("I am having trouble connecting to my diagnostic servers. Please try again.", () => {
+                    if (isAwake) {
+                        startListening();
+                    }
+                });
+            }
+        }
+
+        // Handle text submission fallback
+        async function handleTextSubmit(event) {
+            event.preventDefault();
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            userInput.value = '';
+            appendMessage('user', text);
+
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            isSpeaking = false;
+
+            await sendQueryToBackend(text);
+        }
+
+        // Clear Session conversation log
+        async function resetConversation() {
+            try {
+                await fetch('/api/clear', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId
+                    })
+                });
+
+                chatLogs.innerHTML = '';
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio = null;
+                }
+                isSpeaking = false;
+                
+                const clearText = "Session cleared. Let's restart. How can I help you today?";
+                appendMessage('baymax', `<p>${clearText}</p>`);
+                speak(clearText, () => {
+                    if (isAwake) {
+                        startListening();
+                    }
+                });
+            } catch (e) {
+                console.error("Failed to clear session:", e);
+            }
+        }
+
+        // Helper: Append a message bubble to the chat logs
+        function appendMessage(sender, contentHTML) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}`;
+            msgDiv.innerHTML = contentHTML;
+            chatLogs.appendChild(msgDiv);
+            chatLogs.scrollTop = chatLogs.scrollHeight;
+            return msgDiv;
+        }
+
+        // Clean slate check on loading page
+        window.addEventListener('load', () => {
+            setFaceState('asleep');
+            loadVoices();
+        });
+    </script>
+</body>
+</html>
