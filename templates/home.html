@@ -330,7 +330,8 @@
         .floating-bubble {
             position: absolute;
             bottom: 70px;
-            right: 0;
+            left: 50%;
+            transform: translateX(-50%);
             background: var(--accent-color);
             color: #ffffff;
             padding: 8px 14px;
@@ -346,7 +347,8 @@
             content: '';
             position: absolute;
             bottom: -6px;
-            right: 22px;
+            left: 50%;
+            transform: translateX(-50%);
             border-width: 6px 6px 0;
             border-style: solid;
             border-color: var(--accent-color) transparent;
@@ -378,8 +380,8 @@
             95% { transform: scaleY(0.1); }
         }
         @keyframes float-bob {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
         }
         @keyframes heartbeat {
             0% { transform: scale(1); }
