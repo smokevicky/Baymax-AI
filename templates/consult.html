@@ -179,6 +179,7 @@
             background-color: #0c0d0e;
             border-radius: 50%;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: eye-idle-blink 5s infinite ease-in-out;
         }
 
         /* Connector Area */
@@ -212,68 +213,36 @@
             padding: 0 8px;
         }
 
-        /* Colored Siri waves */
-        .siri-wave {
-            width: 3.5px;
-            height: 4px;
-            border-radius: 2px;
-            transition: all 0.3s ease;
-        }
-
-        /* Colors and morphs for Siri Waveforms */
-        .siri-w-1 {
-            background-color: #3b82f6; /* Blue */
-            box-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
-            animation: siri-wave-pulse 0.7s ease-in-out infinite alternate;
-        }
-
-        .siri-w-2 {
-            background-color: #ec4899; /* Pink */
-            box-shadow: 0 0 8px rgba(236, 72, 153, 0.8);
-            animation: siri-wave-pulse 0.45s ease-in-out infinite alternate;
-            animation-delay: 0.1s;
-        }
-
-        .siri-w-3 {
-            background-color: #14b8a6; /* Teal */
-            box-shadow: 0 0 8px rgba(20, 184, 166, 0.8);
-            animation: siri-wave-pulse 0.6s ease-in-out infinite alternate;
-            animation-delay: 0.2s;
-        }
-
-        .siri-w-4 {
-            background-color: #8b5cf6; /* Purple */
-            box-shadow: 0 0 8px rgba(139, 92, 246, 0.8);
-            animation: siri-wave-pulse 0.5s ease-in-out infinite alternate;
-            animation-delay: 0.15s;
-        }
-
-        @keyframes siri-wave-pulse {
-            0% { transform: scaleY(0.4); height: 4px; }
-            100% { transform: scaleY(2.2); height: 16px; }
-        }
-
-        /* Faster and larger pulses when speaking */
-        .siri-container.speaking .siri-w-1 { animation-duration: 0.3s; height: 22px; }
-        .siri-container.speaking .siri-w-2 { animation-duration: 0.2s; height: 22px; }
-        .siri-container.speaking .siri-w-3 { animation-duration: 0.28s; height: 22px; }
-        .siri-container.speaking .siri-w-4 { animation-duration: 0.24s; height: 22px; }
-
         /* Baymax Eyes Glow Animations */
         .siri-container.listening .siri-baymax-eye {
-            background-color: #0f766e;
-            box-shadow: 0 0 14px 3px rgba(20, 184, 166, 0.65);
+            background-color: #10b981; /* Green */
+            box-shadow: 0 0 16px 5px rgba(16, 185, 129, 0.75);
+            animation: eye-listening-move 3s infinite ease-in-out;
         }
 
         .siri-container.speaking .siri-baymax-eye {
-            background-color: #1e3a8a;
-            box-shadow: 0 0 16px 4px rgba(59, 130, 246, 0.7);
-            animation: eye-speak-pulse 0.4s ease-in-out infinite alternate;
+            background-color: #3b82f6; /* Blue */
+            box-shadow: 0 0 18px 5px rgba(59, 130, 246, 0.85);
+            animation: eye-speaking-move 0.6s infinite ease-in-out alternate;
         }
 
-        @keyframes eye-speak-pulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.12); }
+        @keyframes eye-idle-blink {
+            0%, 92%, 100% { transform: scaleY(1); }
+            96% { transform: scaleY(0.1); }
+        }
+
+        @keyframes eye-listening-move {
+            0%, 100% { transform: translateX(0) scaleY(1); }
+            20% { transform: translateX(-3px) scaleY(1); }
+            40% { transform: translateX(0) scaleY(1); }
+            60% { transform: translateX(3px) scaleY(1); }
+            80% { transform: translateX(0) scaleY(1); }
+            95% { transform: translateX(0) scaleY(0.1); }
+        }
+
+        @keyframes eye-speaking-move {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-4px) scale(1.08); }
         }
 
         /* Tooltip text */
@@ -527,14 +496,6 @@
                 <div class="siri-baymax-connector" id="siriConnector">
                     <!-- Classic solid line (visible when idle/asleep) -->
                     <div class="siri-classic-line" id="siriClassicLine"></div>
-                    
-                    <!-- Siri waves (visible/animating when listening/speaking) -->
-                    <div class="siri-voice-waves" id="siriVoiceWaves">
-                        <div class="siri-wave siri-w-1"></div>
-                        <div class="siri-wave siri-w-2"></div>
-                        <div class="siri-wave siri-w-3"></div>
-                        <div class="siri-wave siri-w-4"></div>
-                    </div>
                 </div>
                 
                 <!-- Right Eye -->
@@ -703,27 +664,15 @@
             faceCard.className = 'siri-container';
             faceCard.classList.add(state);
             
-            if (state === 'listening' || state === 'speaking') {
-                if (siriClassicLine) siriClassicLine.style.opacity = '0';
-                if (siriVoiceWaves) siriVoiceWaves.style.display = 'flex';
-                
-                if (siriTooltip) {
-                    if (state === 'listening') {
-                        siriTooltip.innerText = 'Listening... Press Space to mute';
-                    } else {
-                        siriTooltip.innerText = 'Speaking... Press Space to interrupt';
-                    }
-                }
-            } else {
-                if (siriClassicLine) siriClassicLine.style.opacity = '1';
-                if (siriVoiceWaves) siriVoiceWaves.style.display = 'none';
-                
-                if (siriTooltip) {
-                    if (state === 'idle') {
-                        siriTooltip.innerText = 'Idle - Click or Space to speak';
-                    } else if (state === 'asleep') {
-                        siriTooltip.innerText = 'Asleep';
-                    }
+            if (siriTooltip) {
+                if (state === 'listening') {
+                    siriTooltip.innerText = 'Listening... Press Space to mute';
+                } else if (state === 'speaking') {
+                    siriTooltip.innerText = 'Speaking... Press Space to interrupt';
+                } else if (state === 'idle') {
+                    siriTooltip.innerText = 'Idle - Click or Space to speak';
+                } else if (state === 'asleep') {
+                    siriTooltip.innerText = 'Asleep';
                 }
             }
         }
