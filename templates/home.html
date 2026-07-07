@@ -712,7 +712,11 @@
         }
 
         function triggerQuickConsult(topic) {
-            window.location.href = `/consult?topic=${encodeURIComponent(topic)}`;
+            if (topic === 'Doctor' || topic === 'general') {
+                window.location.href = '/consult';
+            } else {
+                window.location.href = `/consult?topic=${encodeURIComponent(topic)}`;
+            }
         }
 
         window.addEventListener('load', () => {
