@@ -280,7 +280,7 @@ async def upload_endpoint(
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     # Save to a temporary file
-    temp_dir = "temp_uploads"
+    temp_dir = "/tmp"
     os.makedirs(temp_dir, exist_ok=True)
     temp_file_path = os.path.join(temp_dir, f"{session_id}_{file.filename}")
 
