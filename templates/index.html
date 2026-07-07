@@ -652,6 +652,8 @@
         let isSpeaking = false;
         let voiceGreetingPlayed = false;
         let autoRestartRecognition = true;
+        let silenceTimer = null;
+        let accumulatedTranscript = '';
 
         // Web Speech APIs
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -697,20 +699,45 @@
         // Initialize Speech Recognition
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = true;
+            recognition.interimResults = true;
             recognition.lang = 'en-US';
 
             recognition.onstart = () => {
                 isListening = true;
                 setFaceState('listening');
+                accumulatedTranscript = '';
             };
 
             recognition.onresult = async (event) => {
-                const transcript = event.results[0][0].transcript;
-                if (transcript.trim()) {
-                    appendMessage('user', transcript);
-                    await sendQueryToBackend(transcript);
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                // Show live transcription text inside the Siri tooltip for real-time responsiveness
+                if (interimTranscript.trim()) {
+                    siriTooltip.innerText = "..." + interimTranscript.trim();
+                }
+
+                if (finalTranscript.trim()) {
+                    accumulatedTranscript += ' ' + finalTranscript.trim();
+                    // Reset the silence timer: wait 2.0 seconds of complete silence before submitting
+                    clearTimeout(silenceTimer);
+                    silenceTimer = setTimeout(async () => {
+                        const queryText = accumulatedTranscript.trim();
+                        if (queryText) {
+                            accumulatedTranscript = '';
+                            appendMessage('user', queryText);
+                            await sendQueryToBackend(queryText);
+                        }
+                    }, 2000); // 2.0 seconds pause allows comfortable talking without being cut off!
                 }
             };
 
@@ -721,7 +748,7 @@
                     autoRestartRecognition = false;
                     setFaceState('idle');
                 } else if (event.error === 'no-speech') {
-                    // Timeout with no speech, quiet restart if allowed
+                    accumulatedTranscript = '';
                     if (autoRestartRecognition && isAwake && !isSpeaking) {
                         startRecognitionQuietly();
                     }
@@ -803,6 +830,8 @@
         function startListening() {
             if (!recognition) return;
             autoRestartRecognition = true;
+            accumulatedTranscript = '';
+            clearTimeout(silenceTimer);
             try {
                 recognition.start();
             } catch (e) {
@@ -813,6 +842,8 @@
         // Quietly restart without throwing if already running
         function startRecognitionQuietly() {
             if (!recognition || isListening) return;
+            accumulatedTranscript = '';
+            clearTimeout(silenceTimer);
             try {
                 recognition.start();
             } catch (e) {}
@@ -822,6 +853,8 @@
         function stopListening() {
             if (!recognition) return;
             autoRestartRecognition = false;
+            clearTimeout(silenceTimer);
+            accumulatedTranscript = '';
             try {
                 recognition.stop();
             } catch (e) {

@@ -2,7 +2,7 @@ import os
 import re
 import markdown
 import edge_tts
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -185,7 +185,7 @@ async def clear_endpoint(request: ClearRequest):
 async def tts_endpoint(text: str, voice: str = "en-US-AndrewNeural"):
     """
     Synthesizes clean text query into a high-quality neural voice using Edge TTS,
-    streaming the generated audio file back to the browser.
+    returning the generated audio file back to the browser immediately.
     """
     if not text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
@@ -197,12 +197,12 @@ async def tts_endpoint(text: str, voice: str = "en-US-AndrewNeural"):
         
         communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
         
-        async def audio_generator():
-            async for chunk in communicate.stream():
-                if chunk["type"] == "audio":
-                    yield chunk["data"]
+        audio_data = bytearray()
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio_data.extend(chunk["data"])
                     
-        return StreamingResponse(audio_generator(), media_type="audio/mpeg")
+        return Response(content=bytes(audio_data), media_type="audio/mpeg")
 
     except Exception as e:
         print(f"Edge TTS synthesis error: {e}")
