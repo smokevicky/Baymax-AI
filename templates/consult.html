@@ -216,35 +216,32 @@
         /* Baymax Eyes Glow Animations */
         .siri-container.listening .siri-baymax-eye {
             background-color: #10b981; /* Green */
-            box-shadow: 0 0 16px 5px rgba(16, 185, 129, 0.75);
-            animation: eye-listening-pulse 3s infinite ease-in-out;
+            animation: eye-listening-glow 2.5s infinite ease-in-out alternate, eye-casual-blink 6s infinite ease-in-out;
         }
 
         .siri-container.speaking .siri-baymax-eye {
             background-color: #3b82f6; /* Blue */
-            box-shadow: 0 0 18px 5px rgba(59, 130, 246, 0.85);
-            animation: eye-speaking-pulse 0.4s infinite ease-in-out alternate;
+            animation: eye-speaking-glow 1.5s infinite ease-in-out alternate, eye-casual-blink 6s infinite ease-in-out;
         }
 
         @keyframes eye-idle-blink {
-            0%, 92%, 100% { transform: scaleY(1); }
-            96% { transform: scaleY(0.1); }
+            0%, 93%, 100% { transform: scaleY(1); }
+            96% { transform: scaleY(0.08); }
         }
 
-        @keyframes eye-listening-pulse {
-            0%, 100% { box-shadow: 0 0 12px 3px rgba(16, 185, 129, 0.5); transform: scale(1); }
-            45% { box-shadow: 0 0 20px 6px rgba(16, 185, 129, 0.85); transform: scale(1.04); }
-            90% { transform: scaleY(1); }
-            93% { transform: scaleY(0.1); } /* occasionally blink */
-            96% { transform: scaleY(1); }
+        @keyframes eye-casual-blink {
+            0%, 93%, 100% { transform: scaleY(1); }
+            96% { transform: scaleY(0.08); }
         }
 
-        @keyframes eye-speaking-pulse {
-            0% { box-shadow: 0 0 14px 4px rgba(59, 130, 246, 0.7); transform: scale(0.97) scaleY(1); }
-            45% { box-shadow: 0 0 22px 7px rgba(59, 130, 246, 0.95); transform: scale(1.05) scaleY(1); }
-            90% { transform: scaleY(1); }
-            93% { transform: scaleY(0.1); } /* occasionally blink */
-            96% { transform: scaleY(1); }
+        @keyframes eye-listening-glow {
+            0% { box-shadow: 0 0 10px 2px rgba(16, 185, 129, 0.45); }
+            100% { box-shadow: 0 0 20px 6px rgba(16, 185, 129, 0.8); }
+        }
+
+        @keyframes eye-speaking-glow {
+            0% { box-shadow: 0 0 12px 3px rgba(59, 130, 246, 0.55); }
+            100% { box-shadow: 0 0 22px 7px rgba(59, 130, 246, 0.88); }
         }
 
         /* Tooltip text */
