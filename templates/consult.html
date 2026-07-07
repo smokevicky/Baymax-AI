@@ -976,7 +976,14 @@
                     window.speechSynthesis.speak(triggerGreeting);
                 }
                 
-                const ackText = `Hello! Let's analyze your ${topic}.`;
+                let ackText = "Hello! How can I help you manage your health today?";
+                if (topic === 'Doctor') {
+                    ackText = "Hello! Let's start your clinical health check.";
+                } else if (topic === 'Labs') {
+                    ackText = "Hello! Let's interpret your lab test results.";
+                } else if (topic === 'Symptoms') {
+                    ackText = "Hello! Let's check your symptoms.";
+                }
                 appendMessage('baymax', `<p>${ackText}</p>`);
                 
                 speak(ackText, async () => {
