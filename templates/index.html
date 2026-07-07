@@ -234,7 +234,7 @@
             transform: translateX(-50%);
             z-index: 100;
             cursor: pointer;
-            display: flex;
+            display: none; /* Hidden by default on landing page */
             flex-direction: column;
             align-items: center;
             gap: 10px;
@@ -895,16 +895,6 @@
             </div>
         </div>
 
-        <div class="splash-logo">
-            <div class="splash-eyes">
-                <div class="splash-eye"></div>
-                <div class="splash-line"></div>
-                <div class="splash-eye"></div>
-            </div>
-        </div>
-        <h1 class="splash-title">Baymax AI</h1>
-        <p class="splash-subtitle">A compassionate, highly efficient robotic healthcare companion designed to assist with your well-being.</p>
-        <button class="btn-wake" id="wakeBtn" onclick="wakeUpBaymax()">Wake Up Baymax</button>
 
         <!-- Vitals Dashboard -->
         <div class="vitals-grid">

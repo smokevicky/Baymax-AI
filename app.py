@@ -261,7 +261,7 @@ async def get_facts():
         return facts_cache["data"]
         
     prompt = (
-        "Generate exactly 5 interesting, scientifically accurate, and surprising 'Did you know?' facts about health, the human body, sleep, hydration, exercise, or nutrition.\n"
+        "Generate exactly 5 interesting, scientifically accurate, surprising 'Did you know?' facts strictly about human health, medicine, wellness, healthy living, physiology, or nutrition. DO NOT return general knowledge, general science, or general history trivia. Every fact must be directly and explicitly related to human health and medical wellness.\n"
         "Format the response using the provided schema. For each entry, provide the 'fact' text and a simple, one-word, lowercase English 'keyword' that represents the health topic (e.g. 'laugh', 'heart', 'water', 'forest', 'sleep', 'apple', 'run', 'fruit') for image search."
     )
     
