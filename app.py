@@ -104,12 +104,14 @@ async def chat_endpoint(request: ChatRequest):
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
     try:
+        MODEL_ORDER = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-flash-latest"]
+
         # Initialize session chat object if not exists
         if session_id not in chat_sessions:
             chat_sessions[session_id] = {
-                "model": "gemini-2.5-flash",
+                "model_index": 0,
                 "chat": client.chats.create(
-                    model="gemini-2.5-flash",
+                    model=MODEL_ORDER[0],
                     config=types.GenerateContentConfig(
                         system_instruction=SYSTEM_INSTRUCTION,
                         temperature=0.7,
@@ -118,38 +120,41 @@ async def chat_endpoint(request: ChatRequest):
             }
 
         session = chat_sessions[session_id]
+        response = None
         
-        try:
-            # Send message to Gemini
-            response = session["chat"].send_message(message_content)
-            raw_text = response.text
-        except Exception as e:
-            # Fallback wrapper for Rate-Limit (429) or High Demand (503)
-            error_str = str(e)
-            if ("429" in error_str or "503" in error_str) and session["model"] == "gemini-2.5-flash":
-                print(f"Gemini 2.5 Flash rate-limited or unavailable. Falling back to Gemini 2.5 Flash Lite for session {session_id}...")
-                try:
-                    # Fetch history to preserve multi-turn dialog
-                    history = session["chat"].get_history()
-                    new_chat = client.chats.create(
-                        model="gemini-2.5-flash-lite",
-                        history=history,
-                        config=types.GenerateContentConfig(
-                            system_instruction=SYSTEM_INSTRUCTION,
-                            temperature=0.7,
+        while True:
+            current_model_name = MODEL_ORDER[session["model_index"]]
+            try:
+                # Send message to Gemini
+                response = session["chat"].send_message(message_content)
+                raw_text = response.text
+                break  # Success!
+            except Exception as e:
+                error_str = str(e)
+                # Fallback wrapper for Rate-Limit (429) or High Demand (503)
+                if ("429" in error_str or "503" in error_str) and session["model_index"] < len(MODEL_ORDER) - 1:
+                    next_index = session["model_index"] + 1
+                    next_model_name = MODEL_ORDER[next_index]
+                    print(f"Gemini model {current_model_name} rate-limited/unavailable. Falling back to {next_model_name} for session {session_id}...")
+                    try:
+                        # Fetch history to preserve multi-turn dialog
+                        history = session["chat"].get_history()
+                        new_chat = client.chats.create(
+                            model=next_model_name,
+                            history=history,
+                            config=types.GenerateContentConfig(
+                                system_instruction=SYSTEM_INSTRUCTION,
+                                temperature=0.7,
+                            )
                         )
-                    )
-                    chat_sessions[session_id] = {
-                        "model": "gemini-2.5-flash-lite",
-                        "chat": new_chat
-                    }
-                    response = new_chat.send_message(message_content)
-                    raw_text = response.text
-                except Exception as ex:
-                    print(f"Fallback to Gemini 2.5 Flash Lite failed: {ex}")
+                        session["model_index"] = next_index
+                        session["chat"] = new_chat
+                        # Continue loop to send message to new model
+                    except Exception as ex:
+                        print(f"Fallback to {next_model_name} failed: {ex}")
+                        raise e
+                else:
                     raise e
-            else:
-                raise e
         
         # Convert raw text to HTML for presentation
         display_html = markdown.markdown(raw_text)
