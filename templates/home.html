@@ -162,19 +162,17 @@
             padding: 32px 80px; /* Leave padding on the sides for arrows */
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
             min-height: 320px;
             background: transparent;
         }
         .capability-card-inner {
-            background: rgba(250, 249, 246, 0.75); /* Light semi-transparent warm background to avoid overlap */
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: #faf9f6; /* Solid off-white background to completely hide threads under text */
             border-radius: 24px;
             padding: 32px 40px;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
             max-width: 760px;
             width: 100%;
             display: flex;
