@@ -845,6 +845,24 @@
             display: inline-block;
         }
 
+        /* Splash Screen Footer Credits */
+        .splash-footer {
+            margin-top: auto;
+            padding-top: 24px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.6;
+            font-weight: 500;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        .splash-footer strong {
+            color: var(--text-primary);
+        }
+
         /* Responsive refinements for the dashboard */
         @media (max-width: 900px) {
             .vitals-grid {
@@ -925,6 +943,10 @@
                 <div class="vital-value">8,420 <span class="vital-unit">steps</span></div>
                 <div class="vital-status status-optimal">Near Target</div>
             </div>
+        <!-- Footer Credits -->
+        <div class="splash-footer">
+            <p>Crafted with ❤️ by <strong>Divyansh Jena, Ayush Kar</strong></p>
+            <p style="font-size: 0.75rem; opacity: 0.8; margin-top: 4px;">Supported by: Ashutosh Sahoo, Anshuman Parida</p>
         </div>
     </div>
 
