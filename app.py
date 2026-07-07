@@ -157,7 +157,7 @@ async def chat_endpoint(request: ChatRequest):
                     raise e
         
         # Convert raw text to HTML for presentation
-        display_html = markdown.markdown(raw_text)
+        display_html = markdown.markdown(raw_text, extensions=['tables', 'fenced_code'])
         # Convert raw text to clean speech synthesis structure
         tts_text = clean_text_for_tts(raw_text)
         

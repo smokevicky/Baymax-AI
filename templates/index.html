@@ -484,6 +484,41 @@
             margin-bottom: 4px;
         }
 
+        /* Beautiful table styling */
+        .message.baymax table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.9rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        .message.baymax th {
+            background-color: #f8fafc;
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .message.baymax td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .message.baymax tr:last-child td {
+            border-bottom: none;
+        }
+
+        .message.baymax tr:hover td {
+            background-color: #f8fafc;
+        }
+
         /* Fallback Text Input */
         .input-bar {
             padding: 16px;
