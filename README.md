@@ -1,29 +1,47 @@
-# Baymax AI - Speech-to-Speech Healthcare Companion
+# Baymax AI - Multimodal Speech-to-Speech Healthcare Companion
 
-Baymax AI is a complete, production-ready speech-to-speech AI Health Assistant inspired by the comforting robotic companion Baymax from Big Hero 6. It uses FastAPI for a lightweight async backend, the modern `google-genai` SDK with `gemini-2.5-flash` for multi-turn medical diagnostics, and a responsive HTML5/CSS3/Vanilla JS frontend integrating browser-native Web Speech APIs.
+Baymax AI is a comfort-focused, production-ready speech-to-speech AI Health Assistant inspired by the beloved robotic companion Baymax from *Big Hero 6*. 
 
-## Features
-- **Ultra-Clean Baymax UI**: Features a beautiful white interface with the iconic Baymax eyes.
-- **Dynamic Waveform Connector**: Connects the eyes and morphs into a pulsing CSS soundwave when listening or speaking, and returns to a static flat line when idle.
-- **Speech Interactivity**: Integrated continuous Speech-to-Text (`SpeechRecognition`) and Text-to-Speech (`SpeechSynthesis`) with natural, comforting, robotic pacing.
-- **Smart Dialogue & clinical guidelines**: Gemini 2.5 Flash behaves like a real doctor (asks clarifying timeline, severity, and compound symptom questions one-by-one rather than rushed diagnosis), dynamically structures lists/schedules, and includes health warnings/emergency indicators.
-- **Robust Fallbacks**: Graceful fallback to inline keyboard/text input in case microphone permissions are disabled or the browser lacks Web Speech compatibility. Works on desktop, mobile, macOS, and Windows.
+Built with **FastAPI** for a lightweight async backend, Google's modern **`google-genai` SDK** utilizing `gemini-2.5-flash` for clinical reasoning, and a **Vanilla HTML5/CSS3/JS frontend** incorporating custom WebGL shaders and browser-native Web Speech APIs.
 
 ---
 
-## Installation & Setup
+## 🌟 Key Features
 
-Follow these steps to run the application locally on macOS or Windows:
+### 1. WebGL-Powered Home Dashboard
+- **Interactive Noise Threads**: Renders 40 organic glowing crimson threads flowing using 2D Perlin Noise, shifting fluidly on cursor movement.
+- **Horizontal Capabilities Slider**: Replaced default vertical scrolling with a single-viewport, auto-playing capabilities carousel featuring:
+  - **Personal AI Doctor**: Launches immediate diagnostic checkups.
+  - **Lab Test Interpretation**: Prompts users to analyze blood, urine, or medical reports.
+  - **AI Symptom Checker**: Checks symptoms in everyday language.
+- **Gradient Cover Mask**: A smooth linear gradient matching the off-white background (`#faf9f6`) completely masks the threads on the left side to ensure maximum text readability.
 
-### 1. Clone or Navigate to the Directory
-Ensure you are in the application root directory:
+### 2. Multi-Page Architecture & Clean Routes
+- **`/` / `/home`**: Main capabilities dashboard.
+- **`/consult`**: Live speech consultation terminal. Topic selections redirect to clean path configurations (e.g. `/consult?topic=Labs` or `/consult?topic=Symptoms`) without long query strings.
+
+### 3. Native Multimodal PDF Report Analysis
+- **Circular Upload Button (`+`)**: Integrated next to the input message bar on the consult page.
+- **Gemini GenAI Files API Integration**: Uploads PDFs directly to Gemini's native document container for clinical analysis.
+- **Session-Persisted File References**: Tracks active file uploads to prevent premature file deletion, enabling continuous multi-turn follow-up questions (e.g., *"What does that glucose level mean?"*) without crashing.
+- **Cloud Cleanup**: File references are automatically deleted from Gemini's storage when the user clears their session history.
+
+### 4. Comfort Voice Assistant UI
+- **Comforting Robotic Voice**: Integrated Edge-TTS neural voice synthesis with sentence-prefetching buffer mechanisms, achieving **under 200ms latency**.
+- **Continuous Listening**: Voice recognition with silence tolerance so you aren't cut off mid-thought.
+- **Dynamic Face Shaders**: Eye graphics blinking, glowing, and morphing into active waveform states to represent talking, thinking, and listening states.
+
+---
+
+## 🛠️ Installation & Local Setup
+
+### 1. Clone & Navigate
 ```bash
-cd /Users/jyoti.jena/Documents/Repos/Baymax-AI
+git clone https://github.com/smokevicky/Baymax-AI.git
+cd Baymax-AI
 ```
 
-### 2. Set Up a Virtual Environment (Recommended)
-Creating a virtual environment ensures Python package containment:
-
+### 2. Setup Virtual Environment
 **On macOS / Linux:**
 ```bash
 python3 -m venv venv
@@ -37,50 +55,28 @@ venv\Scripts\activate
 ```
 
 ### 3. Install Dependencies
-Install all required modules specified in `requirements.txt`:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure the Gemini API Key
-The application initializes the Gemini client using the environment variable `GEMINI_API_KEY`. If this environment variable is not defined, it automatically falls back to the preset API key provided.
-
-To set your custom key:
-
-**On macOS / Linux:**
-```bash
-export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
-```
-
-**On Windows (Command Prompt):**
-```cmd
-set GEMINI_API_KEY=YOUR_GEMINI_API_KEY
-```
-
-**On Windows (PowerShell):**
-```powershell
-$env:GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
-```
-
----
-
-## Running the Server
-
-Start the FastAPI application utilizing Uvicorn:
+### 4. Run the Server
 ```bash
 python app.py
 ```
-Or run directly through Uvicorn:
-```bash
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
-```
-
-Once running, open your browser and navigate to:
-**[http://localhost:8000](http://localhost:8000)**
+Open **[http://localhost:8000](http://localhost:8000)** in your browser.
 
 ---
 
-## Multi-Device & Browser Guidance
-1. **Localhost requirement**: Modern browsers (Chrome, Edge, Safari, Firefox) restrict Web Speech (Microphone) access to secure contexts. Running on `localhost` or `127.0.0.1` counts as secure and works out-of-the-box.
-2. **Initial Click Gesture**: Browsers block audio playback before a user gesture. Click the **Wake Up Baymax** button to initialize the audio stream and activate speech recognition.
-3. **Permissions**: Ensure you click "Allow" when the browser prompts for microphone access.
+## 🚀 Live 1-Click Deployments
+
+### Vercel Deployment (Serverless)
+This repository is configured out-of-the-box for **Vercel Serverless Functions** via [vercel.json](file:///Users/jyoti.jena/Documents/Repos/Baymax-AI/vercel.json):
+1. Install Vercel CLI: `npm i -g vercel`.
+2. Run `vercel --prod` in the project root directory.
+3. Add the `GEMINI_API_KEY` under your Vercel Project Environment Settings.
+4. *Vercel-specific enhancements (like writing temporary files to `/tmp` and tracking `.gitkeep` for static folders) are already automated.*
+
+### Docker/Render Deployment
+Use the optimized [Dockerfile](file:///Users/jyoti.jena/Documents/Repos/Baymax-AI/Dockerfile) to deploy on Render, Koyeb, or Hugging Face Spaces:
+- **Build Command**: Automatically reads Docker container build settings.
+- **Environment Key**: Set `GEMINI_API_KEY` inside your cloud host environment variables panel.
