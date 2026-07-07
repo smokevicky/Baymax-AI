@@ -159,7 +159,7 @@
         .capability-card {
             min-width: 100%;
             box-sizing: border-box;
-            padding: 32px 20px; /* Leave padding on the sides for arrows */
+            padding: 32px 20px 32px 0; /* 0 on the left to touch the left margin */
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -169,12 +169,14 @@
         }
         .capability-card-inner {
             background: linear-gradient(to right, #faf9f6 0%, #faf9f6 60%, rgba(250, 249, 246, 0) 100%);
-            padding: 32px 40px;
+            padding: 32px 40px 32px 80px; /* Safe padding-left for text from the screen edge */
             max-width: 760px;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
+            border-radius: 0 24px 24px 0; /* Align flat to the left edge, round on the right */
+            border-left: none;
         }
         .capability-icon-wrapper {
             width: 80px;
@@ -527,10 +529,10 @@
                 right: 10px;
             }
             .capability-card {
-                padding: 24px 40px;
+                padding: 24px 20px 24px 0;
             }
             .capability-card-inner {
-                padding: 24px 28px;
+                padding: 24px 28px 24px 40px;
             }
         }
         @media (max-width: 500px) {
@@ -539,11 +541,11 @@
                 letter-spacing: 5px;
             }
             .capability-card {
-                padding: 20px 24px;
+                padding: 20px 24px 20px 0;
                 min-height: 300px;
             }
             .capability-card-inner {
-                padding: 20px 20px;
+                padding: 20px 20px 20px 32px;
             }
             .capabilities-nav-btn {
                 width: 36px;

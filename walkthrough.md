@@ -18,16 +18,18 @@ This walkthrough documents the implementation and verification details of **Baym
    
 2. **Frontend UI/UX (`templates/`)**:
    - **Home Page (`home.html`)**: Revamped the landing page into a stunning, single-viewport light-themed capabilities showcase:
-     - **Background & Canvas**: Configured the background as a warm off-white radial gradient (`#faf9f6` to `#f0eee9`).
+     - **Background & Canvas**: Configured the background as a solid warm off-white (`#faf9f6`).
      - **WebGL Threads Background**: Integrated the React Bits `<Threads />` component. It renders **40 animated glowing crimson threads** flowing organically using 2D Perlin Noise, shifting dynamically on cursor mouse movement.
      - **No-Vertical-Scroll Grid**: Locked viewport height to `100vh` and set `overflow: hidden` to fit cleanly on all screens.
      - **Full-Width Transparent Capabilities Slider**: Replaced the random facts carousel with an interactive 3-card horizontal carousel:
        1. **Personal AI Doctor**
        2. **Lab Test Interpretation**
        3. **AI Symptom Checker**
-     - **Glass Card Block Inner Wrapper**: Added `.capability-card-inner` styled with a solid warm off-white background (`#faf9f6`) to completely hide the crimson threads running behind the text, avoiding overlaps and ensuring maximum contrast.
+     - **Gradient Mask Inner Wrapper**: Added `.capability-card-inner` styled with a linear-gradient background starting from a solid off-white (`#faf9f6`) on the left to cover the threads completely and fading to transparent towards the right. This matches the page background color exactly and ensures readable text without any overlap.
      - Each card features custom SVG icons, bold large text styles, and small compact action buttons that redirect cleanly to `/consult` with targeted query parameters pre-configured.
-     - Embedded sleek navigation arrows and active indicator dots.
+     - **Two-Line Footer**: Formatted the footer credits into two separate lines:
+       * Line 1: `Crafted with ❤️ by`
+       * Line 2: `Divyansh Jena, Ayush Kar`
      - **Floating Widget Highlight**: Added responsive rules to hide the helper bubble on screens below 920px width, preventing button overlaps on tablets and narrow browser viewports.
    - **Consultation Page (`consult.html`)**: Serves the active session log, controls, and siri-style blinking faceCard widget.
    - **Live Audio Synchronization**: Hooked speech recognition events and audio player states to toggle blinking and glows naturally.
@@ -45,4 +47,4 @@ This walkthrough documents the implementation and verification details of **Baym
 ### Revamped Landing Page Overview
 The home page has transitioned to a warm off-white layout. The WebGL Threads flow beautifully behind a central transparent full-width capabilities slider:
 
-![Landing Page Revamp](/Users/jyoti.jena/.gemini/antigravity-ide/brain/83b03aa5-c268-4378-85e6-7e3366d7e801/landing_page_stable_1783443867308.png)
+![Landing Page Revamp](/Users/jyoti.jena/.gemini/antigravity-ide/brain/83b03aa5-c268-4378-85e6-7e3366d7e801/initial_landing_page_view_1783444276817.png)
