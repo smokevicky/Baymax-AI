@@ -408,6 +408,26 @@
             display: flex;
             gap: 12px;
         }
+        .plus-btn {
+            background-color: #faf9f6;
+            color: #0f172a;
+            border: 1px solid var(--border-color);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            align-self: center;
+        }
+        .plus-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: scale(1.05);
+        }
 
         .input-bar input {
             flex: 1;
@@ -514,6 +534,13 @@
             
             <!-- Fallback text input bar -->
             <form class="input-bar" id="inputForm" onsubmit="handleTextSubmit(event)">
+                <label class="plus-btn" for="fileUploadInput" title="Upload PDF report">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </label>
+                <input type="file" id="fileUploadInput" accept=".pdf" style="display: none;" onchange="handleFileUpload(event)">
                 <input type="text" id="userInput" placeholder="Type a message or symptom here..." autocomplete="off">
                 <button type="submit" class="btn-send">Send</button>
             </form>
@@ -921,6 +948,74 @@
             await sendQueryToBackend(text);
         }
 
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.toLowerCase().endsWith(".pdf")) {
+                alert("Only PDF reports are supported.");
+                return;
+            }
+
+            // Display a message indicating the upload in the chat log
+            const uploadingMsgId = 'msg_' + Date.now();
+            appendMessage('user', `Uploaded file: <strong>${file.name}</strong>`);
+            appendMessage('baymax', `<p id="${uploadingMsgId}">Analyzing your PDF report... Please wait.</p>`);
+            
+            // Set face state to thinking
+            setFaceState('thinking');
+            stopSpeechQueue();
+
+            // Build FormData
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("session_id", sessionId);
+            formData.append("message", "Here is my PDF report. Please analyze the findings, explain any biomarkers or medical values, and provide clinical insights.");
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to upload/analyze report.");
+                }
+
+                const data = await response.json();
+                
+                // Replace the temporary message with the diagnostic analysis
+                const uploadingMsgEl = document.getElementById(uploadingMsgId);
+                if (uploadingMsgEl) {
+                    uploadingMsgEl.parentElement.innerHTML = data.response_html;
+                } else {
+                    appendMessage('baymax', data.response_html);
+                }
+
+                // Make Baymax speak the response text
+                speak(data.tts_text, () => {
+                    if (isAwake && !isSpeaking) {
+                        startListening();
+                    }
+                });
+
+            } catch (err) {
+                console.error(err);
+                const uploadingMsgEl = document.getElementById(uploadingMsgId);
+                if (uploadingMsgEl) {
+                    uploadingMsgEl.parentElement.innerHTML = "<p>Error analyzing your PDF report. Please try again.</p>";
+                } else {
+                    appendMessage('baymax', "<p>Error analyzing your PDF report. Please try again.</p>");
+                }
+                speak("I encountered an error analyzing your medical report. Please try again.", () => {
+                    if (isAwake) startListening();
+                });
+            } finally {
+                // Clear the file input so it can be uploaded again
+                event.target.value = '';
+            }
+        }
+
         async function resetConversation() {
             try {
                 await fetch('/api/clear', {
@@ -980,7 +1075,7 @@
                 if (topic === 'Doctor') {
                     ackText = "Hello, I'm Baymax. Let's start your clinical health check.";
                 } else if (topic === 'Labs') {
-                    ackText = "Hello, I'm Baymax. Let's interpret your lab test results.";
+                    ackText = "Hello, I'm Baymax. Let's interpret your lab test results. Please upload your PDF files or lab test reports using the plus button below.";
                 } else if (topic === 'Symptoms') {
                     ackText = "Hello, I'm Baymax. Let's check your symptoms.";
                 }

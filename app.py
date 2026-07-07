@@ -3,7 +3,8 @@ import time
 import re
 import markdown
 import edge_tts
-from fastapi import FastAPI, HTTPException, Request, Response
+import shutil
+from fastapi import FastAPI, HTTPException, Request, Response, File, UploadFile, Form
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -256,6 +257,125 @@ async def clear_endpoint(request: ClearRequest):
         del chat_sessions[session_id]
         return {"status": "success", "message": f"Session {session_id} successfully cleared"}
     return {"status": "success", "message": f"Session {session_id} not active"}
+
+@app.post("/api/upload")
+async def upload_endpoint(
+    session_id: str = Form(...),
+    message: str = Form(""),
+    file: UploadFile = File(...)
+):
+    """
+    Accepts PDF file upload, stores it temporarily, uploads it to Gemini via the Files API,
+    sends it to the multi-turn session chat, cleans up, and returns display HTML and TTS speech text.
+    """
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+
+    # Save to a temporary file
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
+    temp_file_path = os.path.join(temp_dir, f"{session_id}_{file.filename}")
+
+    try:
+        with open(temp_file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Upload file to Gemini GenAI Files storage
+        print(f"Uploading file {temp_file_path} to Gemini...")
+        uploaded_file = client.files.upload(file=temp_file_path)
+        print(f"File uploaded successfully to Gemini: {uploaded_file.name}")
+
+        MODEL_ORDER = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-latest"]
+
+        if session_id not in chat_sessions:
+            chat_sessions[session_id] = {
+                "model_index": 0,
+                "chat": client.chats.create(
+                    model=MODEL_ORDER[0],
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM_INSTRUCTION,
+                        temperature=0.7,
+                    )
+                )
+            }
+
+        session = chat_sessions[session_id]
+        response = None
+        prompt_message = message.strip() if message.strip() else "Please analyze this PDF report."
+
+        # Wait until the file is active in Gemini
+        # (Though PDF files are typically processed immediately, let's wait up to 10 seconds just in case)
+        wait_seconds = 0
+        while uploaded_file.state.name == "PROCESSING" and wait_seconds < 10:
+            print("Waiting for file to finish processing in Gemini...")
+            time.sleep(1)
+            wait_seconds += 1
+            uploaded_file = client.files.get(name=uploaded_file.name)
+
+        while True:
+            current_model_name = MODEL_ORDER[session["model_index"]]
+            try:
+                # Send the uploaded file reference and the prompt message as content list
+                response = session["chat"].send_message([uploaded_file, prompt_message])
+                raw_text = response.text
+                break
+            except Exception as e:
+                error_str = str(e)
+                print(f"Error calling model {current_model_name} with file upload: {error_str}")
+                
+                # Check rate limits or retry triggers
+                if "429" in error_str or "503" in error_str:
+                    if session["model_index"] < len(MODEL_ORDER) - 1:
+                        next_index = session["model_index"] + 1
+                        next_model_name = MODEL_ORDER[next_index]
+                        print(f"Falling back to {next_model_name} for file session {session_id}...")
+                        try:
+                            history = session["chat"].get_history()
+                            new_chat = client.chats.create(
+                                model=next_model_name,
+                                history=history,
+                                config=types.GenerateContentConfig(
+                                    system_instruction=SYSTEM_INSTRUCTION,
+                                    temperature=0.7,
+                                )
+                            )
+                            session["model_index"] = next_index
+                            session["chat"] = new_chat
+                            continue
+                        except Exception as ex:
+                            print(f"Fallback to {next_model_name} failed: {ex}")
+                            raise e
+                raise e
+
+        # Cleanup local file and Gemini GenAI file storage reference
+        try:
+            os.remove(temp_file_path)
+        except Exception as local_err:
+            print(f"Failed to remove local temporary file: {local_err}")
+            
+        try:
+            client.files.delete(name=uploaded_file.name)
+        except Exception as cloud_err:
+            print(f"Failed to delete Gemini file storage reference: {cloud_err}")
+
+        # Post-process response to HTML and speech text
+        sanitized_text = sanitize_markdown(raw_text)
+        display_html = markdown.markdown(sanitized_text, extensions=['tables', 'fenced_code'])
+        tts_text = clean_text_for_tts(raw_text)
+
+        return JSONResponse({
+            "response_html": display_html,
+            "tts_text": tts_text
+        })
+
+    except Exception as e:
+        if os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+            except:
+                pass
+        print(f"Upload and analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=f"File analysis failed: {str(e)}")
 
 # In-memory facts cache structure
 facts_cache = {
