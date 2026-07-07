@@ -928,57 +928,98 @@
                 setFaceState('idle');
                 appendMessage('baymax', '<p>Microphone deactivated. You can still type, or tap my face to speak again.</p>');
             } else {
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio = null;
-                }
-                isSpeaking = false;
+                stopSpeechQueue();
                 startListening();
             }
         }
 
         let currentAudio = null;
+        let audioQueue = [];
+        let queueIndex = 0;
+        let prefetchCache = {};
 
-        // Speech synthesis utterance caller
-        function speak(text, onCompleteCallback) {
-            // Stop ongoing speech
+        function stopSpeechQueue() {
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio = null;
             }
+            audioQueue = [];
+            queueIndex = 0;
+            prefetchCache = {};
+            isSpeaking = false;
+        }
+
+        // Speech synthesis utterance caller
+        function speak(text, onCompleteCallback) {
+            stopSpeechQueue();
+
             isSpeaking = true;
             setFaceState('speaking');
 
+            // Split into clean, conversational sentences
+            const rawSentences = text.match(/[^.!?]+(?:[.!?]+|$)/g) || [text];
+            
+            // Clean up whitespace and keep non-empty sentences
+            audioQueue = rawSentences
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+
+            if (audioQueue.length === 0) {
+                isSpeaking = false;
+                setFaceState('idle');
+                if (onCompleteCallback) onCompleteCallback();
+                return;
+            }
+
+            playNextQueueItem(onCompleteCallback);
+        }
+
+        function playNextQueueItem(onCompleteCallback) {
+            if (queueIndex >= audioQueue.length) {
+                isSpeaking = false;
+                setFaceState('idle');
+                if (onCompleteCallback) onCompleteCallback();
+                return;
+            }
+
+            const sentence = audioQueue[queueIndex];
             const selectedVoice = voiceSelect.value || "en-US-AndrewNeural";
-            const ttsUrl = `/api/tts?text=${encodeURIComponent(text)}&voice=${selectedVoice}`;
+            const ttsUrl = `/api/tts?text=${encodeURIComponent(sentence)}&voice=${selectedVoice}`;
 
-            currentAudio = new Audio(ttsUrl);
+            let audioObj;
+            if (prefetchCache[queueIndex]) {
+                audioObj = prefetchCache[queueIndex];
+            } else {
+                audioObj = new Audio(ttsUrl);
+            }
+            currentAudio = audioObj;
 
-            currentAudio.onended = () => {
-                isSpeaking = false;
-                setFaceState('idle');
-                if (onCompleteCallback) {
-                    onCompleteCallback();
-                }
+            audioObj.onended = () => {
+                queueIndex++;
+                playNextQueueItem(onCompleteCallback);
             };
 
-            currentAudio.onerror = (e) => {
-                console.error('Audio playback error:', e);
-                isSpeaking = false;
-                setFaceState('idle');
-                if (onCompleteCallback) {
-                    onCompleteCallback();
-                }
+            audioObj.onerror = (e) => {
+                console.error('Audio queue playback error:', e);
+                queueIndex++;
+                playNextQueueItem(onCompleteCallback);
             };
 
-            currentAudio.play().catch(err => {
-                console.warn("Autoplay blocked or failed:", err);
-                isSpeaking = false;
-                setFaceState('idle');
-                if (onCompleteCallback) {
-                    onCompleteCallback();
-                }
+            audioObj.play().catch(err => {
+                console.warn("Autoplay blocked or failed on queue item:", err);
+                queueIndex++;
+                playNextQueueItem(onCompleteCallback);
             });
+
+            // Prefetch the next sentence in the queue to eliminate latency
+            const nextIndex = queueIndex + 1;
+            if (nextIndex < audioQueue.length && !prefetchCache[nextIndex]) {
+                const nextSentence = audioQueue[nextIndex];
+                const nextUrl = `/api/tts?text=${encodeURIComponent(nextSentence)}&voice=${selectedVoice}`;
+                const prefetchAudio = new Audio(nextUrl);
+                prefetchAudio.preload = "auto";
+                prefetchCache[nextIndex] = prefetchAudio;
+            }
         }
 
         // Send query text payload to the FastAPI backend API
@@ -1043,11 +1084,7 @@
             userInput.value = '';
             appendMessage('user', text);
 
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio = null;
-            }
-            isSpeaking = false;
+            stopSpeechQueue();
 
             await sendQueryToBackend(text);
         }
@@ -1066,11 +1103,7 @@
                 });
 
                 chatLogs.innerHTML = '';
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio = null;
-                }
-                isSpeaking = false;
+                stopSpeechQueue();
                 
                 const clearText = "Session cleared. Let's restart. How can I help you today?";
                 appendMessage('baymax', `<p>${clearText}</p>`);
