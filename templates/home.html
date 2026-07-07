@@ -162,12 +162,24 @@
             padding: 32px 80px; /* Leave padding on the sides for arrows */
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            text-align: left;
+            align-items: center;
             justify-content: center;
             min-height: 320px;
             background: transparent;
-            max-width: 269px;
+        }
+        .capability-card-inner {
+            background: rgba(250, 249, 246, 0.75); /* Light semi-transparent warm background to avoid overlap */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 32px 40px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            max-width: 760px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
         .capability-icon-wrapper {
             width: 80px;
@@ -520,7 +532,10 @@
                 right: 10px;
             }
             .capability-card {
-                padding: 24px 50px;
+                padding: 24px 40px;
+            }
+            .capability-card-inner {
+                padding: 24px 28px;
             }
         }
         @media (max-width: 500px) {
@@ -529,8 +544,11 @@
                 letter-spacing: 5px;
             }
             .capability-card {
-                padding: 20px 40px;
+                padding: 20px 24px;
                 min-height: 300px;
+            }
+            .capability-card-inner {
+                padding: 20px 20px;
             }
             .capabilities-nav-btn {
                 width: 36px;
@@ -569,41 +587,47 @@
                 <div class="capabilities-track" id="capabilitiesTrack">
                     <!-- Card 1: Personal AI Doctor -->
                     <div class="capability-card">
-                        <div class="capability-icon-wrapper">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        <div class="capability-card-inner">
+                            <div class="capability-icon-wrapper">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            </div>
+                            <h2 class="capability-title">Personal AI Doctor</h2>
+                            <p class="capability-desc">Chat with your personal AI Doctor to get personalized insights, clinical reasoning, and a list of possible conditions based on your symptoms and health profile.</p>
+                            <button class="capability-action-btn" onclick="triggerQuickConsult('Doctor', 'Hello Doctor, I would like a personalized clinical health check.');">
+                                <span>Chat With AI Doctor</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </button>
                         </div>
-                        <h2 class="capability-title">Personal AI Doctor</h2>
-                        <p class="capability-desc">Chat with your personal AI Doctor to get personalized insights, clinical reasoning, and a list of possible conditions based on your symptoms and health profile.</p>
-                        <button class="capability-action-btn" onclick="triggerQuickConsult('Doctor', 'Hello Doctor, I would like a personalized clinical health check.');">
-                            <span>Chat With AI Doctor</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </button>
                     </div>
 
                     <!-- Card 2: Lab Test Interpretation -->
                     <div class="capability-card">
-                        <div class="capability-icon-wrapper">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.51L4.39 19.34C3.88 20.17 4.48 21 5.39 21h13.22c.9 0 1.51-.83 1-1.66L14 9.51V2h-4zM8.5 2h7M6.6 15h10.8"/></svg>
+                        <div class="capability-card-inner">
+                            <div class="capability-icon-wrapper">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.51L4.39 19.34C3.88 20.17 4.48 21 5.39 21h13.22c.9 0 1.51-.83 1-1.66L14 9.51V2h-4zM8.5 2h7M6.6 15h10.8"/></svg>
+                            </div>
+                            <h2 class="capability-title">Lab Test Interpretation</h2>
+                            <p class="capability-desc">Upload your blood, urine, or other lab results and receive AI-powered analysis, biomarker explanations, and personalized interpretation reports.</p>
+                            <button class="capability-action-btn" onclick="triggerQuickConsult('Labs', 'I have lab test results. Can you interpret my blood or urine markers?');">
+                                <span>Interpret Lab Results</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </button>
                         </div>
-                        <h2 class="capability-title">Lab Test Interpretation</h2>
-                        <p class="capability-desc">Upload your blood, urine, or other lab results and receive AI-powered analysis, biomarker explanations, and personalized interpretation reports.</p>
-                        <button class="capability-action-btn" onclick="triggerQuickConsult('Labs', 'I have lab test results. Can you interpret my blood or urine markers?');">
-                            <span>Interpret Lab Results</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </button>
                     </div>
 
                     <!-- Card 3: AI Symptom Checker -->
                     <div class="capability-card">
-                        <div class="capability-icon-wrapper">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <div class="capability-card-inner">
+                            <div class="capability-icon-wrapper">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </div>
+                            <h2 class="capability-title">AI Symptom Checker</h2>
+                            <p class="capability-desc">Describe your symptoms in everyday language and get instant AI-powered insights into possible conditions, plus personalized recommendations on what to do next.</p>
+                            <button class="capability-action-btn" onclick="triggerQuickConsult('Symptoms', 'I would like to check my symptoms. I have been feeling unwell.');">
+                                <span>Check My Symptoms</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </button>
                         </div>
-                        <h2 class="capability-title">AI Symptom Checker</h2>
-                        <p class="capability-desc">Describe your symptoms in everyday language and get instant AI-powered insights into possible conditions, plus personalized recommendations on what to do next.</p>
-                        <button class="capability-action-btn" onclick="triggerQuickConsult('Symptoms', 'I would like to check my symptoms. I have been feeling unwell.');">
-                            <span>Check My Symptoms</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </button>
                     </div>
                 </div>
             </div>
