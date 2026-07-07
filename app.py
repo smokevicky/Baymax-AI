@@ -28,7 +28,10 @@ templates = Jinja2Templates(directory="templates")
 
 # Mount static files directory
 import os
-os.makedirs("static", exist_ok=True)
+try:
+    os.makedirs("static", exist_ok=True)
+except Exception:
+    pass
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Load .env file manually if exists to keep code clean of secrets
