@@ -128,12 +128,15 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #ffffff;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
             z-index: 100;
+            overflow-y: auto;
+            box-sizing: border-box;
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
         }
 
@@ -585,12 +588,295 @@
                 font-size: 1.6rem;
             }
         }
+        /* Dynamic Landing Page Enhancements */
+
+        /* Facts Carousel */
+        .carousel-container {
+            width: 100%;
+            max-width: 600px;
+            height: 320px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 12px 24px -10px rgba(0,0,0,0.15);
+            background: #ffffff;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
+        .carousel-track {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+        }
+        .carousel-slide {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            box-sizing: border-box;
+        }
+        .carousel-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.95;
+            transition: filter 0.3s ease;
+        }
+        .carousel-slide:hover .carousel-image {
+            filter: brightness(0.9);
+        }
+        .carousel-caption {
+            width: 100%;
+            padding: 24px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%);
+            color: #ffffff;
+            box-sizing: border-box;
+            z-index: 2;
+            text-align: left;
+        }
+        .carousel-caption h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 0 0 6px 0;
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+        .carousel-caption p {
+            font-size: 1.05rem;
+            margin: 0;
+            line-height: 1.45;
+            font-weight: 500;
+        }
+        .carousel-indicators {
+            position: absolute;
+            bottom: 16px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 3;
+        }
+        .carousel-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .carousel-indicator.active {
+            background: #ffffff;
+            transform: scale(1.3);
+        }
+
+        /* Vitals Dashboard */
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 24px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        .vital-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 18px;
+            text-align: left;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 130px;
+            box-sizing: border-box;
+        }
+        .vital-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-color);
+        }
+        .vital-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+        .vital-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .vital-icon {
+            font-size: 1.3rem;
+        }
+        .vital-value {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 4px 0;
+        }
+        .vital-unit {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .vital-status {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            width: fit-content;
+            margin-top: auto;
+        }
+        .status-optimal {
+            background: #ecfdf5;
+            color: #059669;
+        }
+        .status-warning {
+            background: #fffbeb;
+            color: #d97706;
+        }
+        
+        /* Floating Baymax Eye Widget */
+        .floating-baymax-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 101;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            transition: all 0.3s ease;
+        }
+        .floating-eye-icon {
+            width: 56px;
+            height: 56px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .floating-baymax-widget:hover .floating-eye-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.25);
+            border-color: var(--accent-color);
+        }
+        .floating-eye-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .floating-eye {
+            width: 8px;
+            height: 8px;
+            background: #000000;
+            border-radius: 50%;
+            animation: blink-anim 4s infinite;
+        }
+        .floating-line {
+            width: 16px;
+            height: 1px;
+            background: #000000;
+        }
+        .floating-bubble {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: var(--accent-color);
+            color: #ffffff;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            animation: float-bob 3s ease-in-out infinite;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .floating-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: 22px;
+            border-width: 6px 6px 0;
+            border-style: solid;
+            border-color: var(--accent-color) transparent;
+            display: block;
+            width: 0;
+        }
+
+        /* Animations */
+        @keyframes blink-anim {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+        @keyframes float-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.15); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.15); }
+            70% { transform: scale(1); }
+        }
+        .pulse-heart {
+            animation: heartbeat 1.5s infinite;
+            display: inline-block;
+        }
+
+        /* Responsive refinements for the dashboard */
+        @media (max-width: 900px) {
+            .vitals-grid {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 600px;
+            }
+        }
+        @media (max-width: 500px) {
+            .vitals-grid {
+                grid-template-columns: 1fr;
+                max-width: 100%;
+            }
+            .carousel-container {
+                height: 260px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <!-- Splash Wakeup Page -->
     <div class="splash-overlay" id="splashScreen">
+        <!-- Health Facts Carousel -->
+        <div class="carousel-container" id="factsCarousel">
+            <div class="carousel-track" id="carouselTrack">
+                <!-- Dynamically loaded slides -->
+            </div>
+            <div class="carousel-indicators" id="carouselIndicators">
+                <!-- Dynamically loaded indicators -->
+            </div>
+        </div>
+
         <div class="splash-logo">
             <div class="splash-eyes">
                 <div class="splash-eye"></div>
@@ -601,6 +887,57 @@
         <h1 class="splash-title">Baymax AI</h1>
         <p class="splash-subtitle">A compassionate, highly efficient robotic healthcare companion designed to assist with your well-being.</p>
         <button class="btn-wake" id="wakeBtn" onclick="wakeUpBaymax()">Wake Up Baymax</button>
+
+        <!-- Vitals Dashboard -->
+        <div class="vitals-grid">
+            <div class="vital-card" onclick="triggerQuickConsult('heart rate of 72 BPM', 'I noticed my heart rate is 72 BPM. Is that normal?')">
+                <div class="vital-header">
+                    <span class="vital-title">Heart Rate</span>
+                    <span class="vital-icon pulse-heart">❤️</span>
+                </div>
+                <div class="vital-value">72 <span class="vital-unit">BPM</span></div>
+                <div class="vital-status status-optimal">Optimal</div>
+            </div>
+            
+            <div class="vital-card" onclick="triggerQuickConsult('sleep patterns', 'I only got 8.2 hours of sleep last night. What are tips for deep sleep?')">
+                <div class="vital-header">
+                    <span class="vital-title">Sleep Quality</span>
+                    <span class="vital-icon">🌙</span>
+                </div>
+                <div class="vital-value">8.2 <span class="vital-unit">Hours</span></div>
+                <div class="vital-status status-optimal">Optimal</div>
+            </div>
+            
+            <div class="vital-card" onclick="triggerQuickConsult('daily hydration', 'I drank 1.8 liters of water today. Is that enough, or should I drink more?')">
+                <div class="vital-header">
+                    <span class="vital-title">Hydration</span>
+                    <span class="vital-icon">💧</span>
+                </div>
+                <div class="vital-value">1.8 <span class="vital-unit">/ 3.0L</span></div>
+                <div class="vital-status status-warning">Action Required</div>
+            </div>
+            
+            <div class="vital-card" onclick="triggerQuickConsult('daily steps activity', 'I completed 8,420 steps today. Is that active enough?')">
+                <div class="vital-header">
+                    <span class="vital-title">Activity</span>
+                    <span class="vital-icon">👟</span>
+                </div>
+                <div class="vital-value">8,420 <span class="vital-unit">steps</span></div>
+                <div class="vital-status status-optimal">Near Target</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Baymax Eye Consultation Trigger -->
+    <div class="floating-baymax-widget" id="floatingWidget" onclick="wakeUpBaymax()">
+        <div class="floating-bubble">Not feeling well? Consult with me here!</div>
+        <div class="floating-eye-icon">
+            <div class="floating-eye-logo">
+                <div class="floating-eye"></div>
+                <div class="floating-line"></div>
+                <div class="floating-eye"></div>
+            </div>
+        </div>
     </div>
 
     <header>
@@ -903,6 +1240,9 @@
             splashScreen.classList.add('hidden');
             setFaceState('idle');
 
+            const floatingWidget = document.getElementById('floatingWidget');
+            if (floatingWidget) floatingWidget.style.display = 'none';
+
             // Force unlock SpeechSynthesis on mobile devices/browsers
             if (window.speechSynthesis) {
                 const triggerGreeting = new SpeechSynthesisUtterance('');
@@ -1127,10 +1467,110 @@
             return msgDiv;
         }
 
+        // Dynamic Landing Page Logic: Carousel & Vitals Interactions
+        let currentSlide = 0;
+        let slideInterval;
+
+        async function initHealthFactsCarousel() {
+            try {
+                const response = await fetch('/api/facts');
+                const facts = await response.json();
+                
+                const track = document.getElementById('carouselTrack');
+                const indicators = document.getElementById('carouselIndicators');
+                
+                if (!facts || facts.length === 0) return;
+                
+                track.innerHTML = '';
+                indicators.innerHTML = '';
+                
+                facts.forEach((item, index) => {
+                    // Slide
+                    const slide = document.createElement('div');
+                    slide.className = 'carousel-slide';
+                    
+                    const img = document.createElement('img');
+                    img.className = 'carousel-image';
+                    img.src = `https://loremflickr.com/600/320/${item.keyword}?random=${index + 1}`;
+                    img.alt = item.keyword;
+                    
+                    const caption = document.createElement('div');
+                    caption.className = 'carousel-caption';
+                    
+                    const title = document.createElement('h3');
+                    title.textContent = "Did You Know?";
+                    
+                    const text = document.createElement('p');
+                    text.textContent = item.fact;
+                    
+                    caption.appendChild(title);
+                    caption.appendChild(text);
+                    slide.appendChild(img);
+                    slide.appendChild(caption);
+                    track.appendChild(slide);
+                    
+                    // Indicator
+                    const indicator = document.createElement('div');
+                    indicator.className = `carousel-indicator ${index === 0 ? 'active' : ''}`;
+                    indicator.onclick = () => goToSlide(index);
+                    indicators.appendChild(indicator);
+                });
+                
+                startCarouselAutoPlay(facts.length);
+            } catch (e) {
+                console.error("Failed to load health facts carousel:", e);
+            }
+        }
+
+        function goToSlide(index) {
+            const track = document.getElementById('carouselTrack');
+            const indicators = document.querySelectorAll('.carousel-indicator');
+            
+            currentSlide = index;
+            if (track) {
+                track.style.transform = `translateX(-${index * 100}%)`;
+            }
+            
+            indicators.forEach((ind, i) => {
+                ind.classList.toggle('active', i === index);
+            });
+        }
+
+        function startCarouselAutoPlay(slideCount) {
+            if (slideInterval) clearInterval(slideInterval);
+            slideInterval = setInterval(() => {
+                let nextSlide = (currentSlide + 1) % slideCount;
+                goToSlide(nextSlide);
+            }, 6000);
+        }
+
+        async function triggerQuickConsult(topic, queryText) {
+            isAwake = true;
+            splashScreen.classList.add('hidden');
+            setFaceState('idle');
+            
+            const floatingWidget = document.getElementById('floatingWidget');
+            if (floatingWidget) floatingWidget.style.display = 'none';
+
+            if (window.speechSynthesis) {
+                const triggerGreeting = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(triggerGreeting);
+            }
+
+            const ackText = `Hello! I am Baymax. Let's analyze your ${topic}.`;
+            appendMessage('baymax', `<p>${ackText}</p>`);
+            
+            speak(ackText, async () => {
+                appendMessage('user', queryText);
+                await sendQueryToBackend(queryText);
+            });
+        }
+
         // Clean slate check on loading page
         window.addEventListener('load', () => {
             setFaceState('asleep');
             loadVoices();
+            initHealthFactsCarousel();
         });
     </script>
 </body>
