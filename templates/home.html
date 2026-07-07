@@ -159,7 +159,7 @@
         .capability-card {
             min-width: 100%;
             box-sizing: border-box;
-            padding: 32px 80px; /* Leave padding on the sides for arrows */
+            padding: 32px 20px; /* Leave padding on the sides for arrows */
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -168,11 +168,8 @@
             background: transparent;
         }
         .capability-card-inner {
-            background: #faf9f6; /* Solid off-white background to completely hide threads under text */
-            border-radius: 24px;
+            background: linear-gradient(to right, #faf9f6 0%, rgba(250, 249, 246, 0.95) 55%, transparent 100%);
             padding: 32px 40px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
             max-width: 760px;
             width: 100%;
             display: flex;
@@ -576,10 +573,7 @@
 
         <!-- Capabilities Slider Carousel -->
         <div class="capabilities-slider-container">
-            <!-- Navigation Left Arrow -->
-            <button class="capabilities-nav-btn left" onclick="moveSlide(-1);" aria-label="Previous capability">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
+            
             
             <div class="capabilities-viewport">
                 <div class="capabilities-track" id="capabilitiesTrack">
@@ -630,10 +624,7 @@
                 </div>
             </div>
 
-            <!-- Navigation Right Arrow -->
-            <button class="capabilities-nav-btn right" onclick="moveSlide(1);" aria-label="Next capability">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l6 6-6 6"/></svg>
-            </button>
+           
 
             <!-- Navigation Indicator Dots -->
             <div class="capabilities-indicators" id="sliderIndicators">
