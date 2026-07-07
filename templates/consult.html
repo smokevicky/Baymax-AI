@@ -1059,9 +1059,8 @@
             // Check for redirect params from the landing page
             const urlParams = new URLSearchParams(window.location.search);
             const topic = urlParams.get('topic');
-            const query = urlParams.get('query');
             
-            if (topic && query) {
+            if (topic) {
                 // Wakes up and triggers the user query automatically
                 isAwake = true;
                 setFaceState('idle');
@@ -1072,19 +1071,26 @@
                 }
                 
                 let ackText = "Hello, I'm Baymax. How can I help you manage your health today?";
+                let autoQuery = null;
+                
                 if (topic === 'Doctor') {
                     ackText = "Hello, I'm Baymax. Let's start your clinical health check.";
+                    autoQuery = "Hello Doctor, I would like a personalized clinical health check.";
                 } else if (topic === 'Labs') {
                     ackText = "Hello, I'm Baymax. Let's interpret your lab test results. Please upload your PDF files or lab test reports using the plus button below.";
                 } else if (topic === 'Symptoms') {
                     ackText = "Hello, I'm Baymax. Let's check your symptoms.";
+                    autoQuery = "I would like to check my symptoms. I have been feeling unwell.";
+                } else if (topic === 'general') {
+                    ackText = "Hello, I'm Baymax. Let's start your clinical consultation.";
                 }
+                
                 appendMessage('baymax', `<p>${ackText}</p>`);
                 
                 speak(ackText, async () => {
-                    if (topic !== 'Labs') {
-                        appendMessage('user', query);
-                        await sendQueryToBackend(query);
+                    if (autoQuery) {
+                        appendMessage('user', autoQuery);
+                        await sendQueryToBackend(autoQuery);
                     } else {
                         startListening();
                     }

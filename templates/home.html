@@ -588,7 +588,7 @@
                 <div class="capabilities-track" id="capabilitiesTrack">
                     <!-- Card 1: Personal AI Doctor -->
                     <div class="capability-card">
-                        <div class="capability-card-inner" onclick="triggerQuickConsult('Doctor', 'Hello Doctor, I would like a personalized clinical health check.');">
+                        <div class="capability-card-inner" onclick="triggerQuickConsult('Doctor');">
                             <div class="capability-icon-wrapper">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                             </div>
@@ -603,7 +603,7 @@
 
                     <!-- Card 2: Lab Test Interpretation -->
                     <div class="capability-card">
-                        <div class="capability-card-inner" onclick="triggerQuickConsult('Labs', 'I have lab test results. Can you interpret my blood or urine markers?');">
+                        <div class="capability-card-inner" onclick="triggerQuickConsult('Labs');">
                             <div class="capability-icon-wrapper">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.51L4.39 19.34C3.88 20.17 4.48 21 5.39 21h13.22c.9 0 1.51-.83 1-1.66L14 9.51V2h-4zM8.5 2h7M6.6 15h10.8"/></svg>
                             </div>
@@ -618,7 +618,7 @@
 
                     <!-- Card 3: AI Symptom Checker -->
                     <div class="capability-card">
-                        <div class="capability-card-inner" onclick="triggerQuickConsult('Symptoms', 'I would like to check my symptoms. I have been feeling unwell.');">
+                        <div class="capability-card-inner" onclick="triggerQuickConsult('Symptoms');">
                             <div class="capability-icon-wrapper">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                             </div>
@@ -651,7 +651,7 @@
     </div>
 
     <!-- Floating Baymax Full Body Consultation Trigger -->
-    <div class="floating-baymax-widget" id="floatingWidget" onclick="triggerQuickConsult('general checkup', '')">
+    <div class="floating-baymax-widget" id="floatingWidget" onclick="triggerQuickConsult('general')">
         <div class="floating-bubble" style="bottom: 165px;">Not feeling well? Consult with me here!</div>
         <div class="baymax-body-container">
             <!-- Left Arm -->
@@ -711,12 +711,8 @@
             }, 8000); // Shift slide every 8 seconds
         }
 
-        function triggerQuickConsult(topic, queryText) {
-            let url = '/consult';
-            if (queryText) {
-                url += `?topic=${encodeURIComponent(topic)}&query=${encodeURIComponent(queryText)}`;
-            }
-            window.location.href = url;
+        function triggerQuickConsult(topic) {
+            window.location.href = `/consult?topic=${encodeURIComponent(topic)}`;
         }
 
         window.addEventListener('load', () => {
