@@ -133,7 +133,7 @@
         /* Capabilities Horizontal Carousel */
         .capabilities-slider-container {
             width: 100%;
-            max-width: 600px;
+            max-width: 100%;
             position: relative;
             z-index: 10;
             margin: 20px 0;
@@ -144,12 +144,12 @@
         .capabilities-viewport {
             width: 100%;
             overflow: hidden;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.08);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.55);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            border-radius: 0;
+            box-shadow: none;
+            border: none;
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
         }
         .capabilities-track {
             display: flex;
@@ -159,13 +159,14 @@
         .capability-card {
             min-width: 100%;
             box-sizing: border-box;
-            padding: 32px 28px;
+            padding: 32px 80px; /* Leave padding on the sides for arrows */
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
             justify-content: center;
             min-height: 320px;
+            background: transparent;
         }
         .capability-icon-wrapper {
             width: 56px;
@@ -255,10 +256,10 @@
             color: var(--baymax-red);
         }
         .capabilities-nav-btn.left {
-            left: -60px;
+            left: 20px;
         }
         .capabilities-nav-btn.right {
-            right: -60px;
+            right: 20px;
         }
         .capabilities-indicators {
             display: flex;
@@ -516,8 +517,8 @@
             .capabilities-nav-btn.right {
                 right: 10px;
             }
-            .capabilities-viewport {
-                max-width: 90%;
+            .capability-card {
+                padding: 24px 50px;
             }
         }
         @media (max-width: 500px) {
@@ -526,8 +527,12 @@
                 letter-spacing: 5px;
             }
             .capability-card {
-                padding: 24px 20px;
+                padding: 20px 40px;
                 min-height: 300px;
+            }
+            .capabilities-nav-btn {
+                width: 36px;
+                height: 36px;
             }
         }
     </style>
