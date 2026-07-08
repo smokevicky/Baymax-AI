@@ -68,6 +68,42 @@ SYSTEM_INSTRUCTION = (
     "For general symptom checkups, follow up by asking clarifying questions one by one about timelines, severity, and compounding symptoms. Always include a compassionate closing or instructions to seek emergency care for red-flag symptoms."
 )
 
+def get_system_instruction(language: str) -> str:
+    lang_clause = ""
+    if language and language.startswith("hi"):
+        lang_clause = (
+            "The user has selected HINDI as their language preference from the interface dropdown. "
+            "You MUST respond, explain, prescribe, and guide the user in Hindi ONLY. "
+            "You should write all responses in Hindi, using standard Devanagari script. "
+            "DO NOT respond in English or use English sentences."
+        )
+    else:
+        lang_clause = (
+            "The user has selected ENGLISH as their language preference from the interface dropdown. "
+            "You MUST respond, explain, prescribe, and guide the user in English ONLY. "
+            "DO NOT use Hindi words, phrases, or Devanagari script in your response under any circumstances.\n"
+            "If the user asks to change the language, ask to speak in Hindi, or expresses a preference to switch/change language, "
+            "you must respond with this exact message: "
+            "'You can choose/change the language from the dropdown at the top. Whatever language you select, I will use the same language.'"
+        )
+        
+    return (
+        f"You are Baymax AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
+        f"{lang_clause}\n"
+        "DO NOT introduce yourself or say 'Hello, I am Baymax' or similar greeting lines on every turn. Only greet the user in the initial greeting (which is handled automatically). For all subsequent turns, dive directly into the answer or symptom analysis without repeating greetings or introductions.\n"
+        "The conversation starts with the user being asked for their name. Once they tell you their name, capture and remember it. Address them by their name warmly in your first response (e.g. 'Hello Vicky, I am here to help you.' or 'नमस्ते विक्की, मैं आपकी मदद करने के लिए यहाँ हूँ।') and refer to their name naturally throughout the conversation turns.\n"
+        "When a user asks for medicines, symptom relief, or medical advice, you must directly recommend suitable standard over-the-counter (OTC) medicines (e.g., Paracetamol, Ibuprofen, Loperamide, Cetirizine, Antacids, Cough Syrup, etc.).\n"
+        "For each suggested medicine, you must provide a detailed daily schedule containing:\n"
+        "1. Dosage (e.g., 500mg)\n"
+        "2. Daily Frequency (e.g., Twice a day / Every 6 hours)\n"
+        "3. Food Timing: State explicitly whether it should be taken Before Food (BF) or After Food (AF).\n"
+        "You MUST output these recommendations directly and clearly in a structured list or table.\n"
+        "DO NOT refuse to suggest medicine names. DO NOT state that you are an AI assistant or cannot prescribe.\n"
+        "DO NOT state that you cannot speak, cannot produce voice, or can only communicate in writing. You are a speaking robot whose responses are directly spoken aloud to the patient by the interface. Write all responses as spoken text.\n"
+        "DO NOT make up fictional roleplay excuses or state that your 'online diagnostic database is experiencing high traffic' or that you are 'running on a local backup system'. You have full and unrestricted access to all medical databases. Answer the user directly and immediately without creating fictional constraints.\n"
+        "For general symptom checkups, follow up by asking clarifying questions one by one about timelines, severity, and compounding symptoms. Always include a compassionate closing or instructions to seek emergency care for red-flag symptoms."
+    )
+
 def sanitize_markdown(text: str) -> str:
     """
     Sanitizes raw markdown to ensure that inline lists (asterisks and numbered items)
@@ -133,6 +169,7 @@ def clean_text_for_tts(text: str) -> str:
 class ChatRequest(BaseModel):
     session_id: str
     message: str
+    language: str = "en-US"
 
 class ClearRequest(BaseModel):
     session_id: str
@@ -167,6 +204,7 @@ async def chat_endpoint(request: ChatRequest):
     """
     session_id = request.session_id
     message_content = request.message.strip()
+    language = request.language.strip() if request.language else "en-US"
 
     if not message_content:
         raise HTTPException(status_code=400, detail="Message cannot be empty")
@@ -176,17 +214,40 @@ async def chat_endpoint(request: ChatRequest):
 
         # Initialize session chat object if not exists
         if session_id not in chat_sessions:
+            current_instruction = get_system_instruction(language)
             chat_sessions[session_id] = {
                 "model_index": 0,
                 "uploaded_files": [],
+                "language": language,
                 "chat": client.chats.create(
                     model=MODEL_ORDER[0],
                     config=types.GenerateContentConfig(
-                        system_instruction=SYSTEM_INSTRUCTION,
+                        system_instruction=current_instruction,
                         temperature=0.7,
                     )
                 )
             }
+        else:
+            session = chat_sessions[session_id]
+            if session.get("language") != language:
+                print(f"Language changed from {session.get('language')} to {language}. Recreating chat object with new system instruction...")
+                current_instruction = get_system_instruction(language)
+                try:
+                    history = session["chat"].get_history()
+                    current_model_name = MODEL_ORDER[session["model_index"]]
+                    new_chat = client.chats.create(
+                        model=current_model_name,
+                        history=history,
+                        config=types.GenerateContentConfig(
+                            system_instruction=current_instruction,
+                            temperature=0.7,
+                        )
+                    )
+                    session["chat"] = new_chat
+                    session["language"] = language
+                except Exception as ex:
+                    print(f"Error updating chat language configuration: {ex}")
+                    session["language"] = language
 
         session = chat_sessions[session_id]
         response = None
@@ -218,7 +279,7 @@ async def chat_endpoint(request: ChatRequest):
                                 model=next_model_name,
                                 history=history,
                                 config=types.GenerateContentConfig(
-                                    system_instruction=SYSTEM_INSTRUCTION,
+                                    system_instruction=get_system_instruction(language),
                                     temperature=0.7,
                                 )
                             )
@@ -275,7 +336,8 @@ async def clear_endpoint(request: ClearRequest):
 async def upload_endpoint(
     session_id: str = Form(...),
     message: str = Form(""),
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    language: str = Form("en-US")
 ):
     """
     Accepts PDF file upload, stores it temporarily, uploads it to Gemini via the Files API,
@@ -301,17 +363,40 @@ async def upload_endpoint(
         MODEL_ORDER = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-latest"]
 
         if session_id not in chat_sessions:
+            current_instruction = get_system_instruction(language)
             chat_sessions[session_id] = {
                 "model_index": 0,
                 "uploaded_files": [],
+                "language": language,
                 "chat": client.chats.create(
                     model=MODEL_ORDER[0],
                     config=types.GenerateContentConfig(
-                        system_instruction=SYSTEM_INSTRUCTION,
+                        system_instruction=current_instruction,
                         temperature=0.7,
                     )
                 )
             }
+        else:
+            session = chat_sessions[session_id]
+            if session.get("language") != language:
+                print(f"Language changed from {session.get('language')} to {language}. Recreating chat object with new system instruction...")
+                current_instruction = get_system_instruction(language)
+                try:
+                    history = session["chat"].get_history()
+                    current_model_name = MODEL_ORDER[session["model_index"]]
+                    new_chat = client.chats.create(
+                        model=current_model_name,
+                        history=history,
+                        config=types.GenerateContentConfig(
+                            system_instruction=current_instruction,
+                            temperature=0.7,
+                        )
+                    )
+                    session["chat"] = new_chat
+                    session["language"] = language
+                except Exception as ex:
+                    print(f"Error updating chat language configuration: {ex}")
+                    session["language"] = language
 
         session = chat_sessions[session_id]
         session["uploaded_files"].append(uploaded_file.name)
@@ -350,7 +435,7 @@ async def upload_endpoint(
                                 model=next_model_name,
                                 history=history,
                                 config=types.GenerateContentConfig(
-                                    system_instruction=SYSTEM_INSTRUCTION,
+                                    system_instruction=get_system_instruction(language),
                                     temperature=0.7,
                                 )
                             )
@@ -486,7 +571,8 @@ async def get_facts():
 async def upload_image_endpoint(
     session_id: str = Form(...),
     message: str = Form("Please analyze this photo."),
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    language: str = Form("en-US")
 ):
     """
     Accepts captured image upload, converts it to bytes, sends it to the Gemini session,
@@ -502,16 +588,39 @@ async def upload_image_endpoint(
         MODEL_ORDER = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-latest"]
 
         if session_id not in chat_sessions:
+            current_instruction = get_system_instruction(language)
             chat_sessions[session_id] = {
                 "model_index": 0,
+                "language": language,
                 "chat": client.chats.create(
                     model=MODEL_ORDER[0],
                     config=types.GenerateContentConfig(
-                        system_instruction=SYSTEM_INSTRUCTION,
+                        system_instruction=current_instruction,
                         temperature=0.7,
                     )
                 )
             }
+        else:
+            session = chat_sessions[session_id]
+            if session.get("language") != language:
+                print(f"Language changed from {session.get('language')} to {language}. Recreating chat object with new system instruction...")
+                current_instruction = get_system_instruction(language)
+                try:
+                    history = session["chat"].get_history()
+                    current_model_name = MODEL_ORDER[session["model_index"]]
+                    new_chat = client.chats.create(
+                        model=current_model_name,
+                        history=history,
+                        config=types.GenerateContentConfig(
+                            system_instruction=current_instruction,
+                            temperature=0.7,
+                        )
+                    )
+                    session["chat"] = new_chat
+                    session["language"] = language
+                except Exception as ex:
+                    print(f"Error updating chat language configuration: {ex}")
+                    session["language"] = language
 
         session = chat_sessions[session_id]
         response = None
@@ -544,7 +653,7 @@ async def upload_image_endpoint(
                                 model=next_model_name,
                                 history=history,
                                 config=types.GenerateContentConfig(
-                                    system_instruction=SYSTEM_INSTRUCTION,
+                                    system_instruction=get_system_instruction(language),
                                     temperature=0.7,
                                 )
                             )

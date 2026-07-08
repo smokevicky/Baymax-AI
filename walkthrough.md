@@ -39,6 +39,10 @@ This walkthrough documents the implementation and verification details of **Baym
    - **Sentence-Splitting & Next-Sentence Background Prefetching**: Divided long responses into sentences to stream audio with zero latency.
    - **Continuous Speech Recognition with Silence Detection**: Reconfigured listening to prevent early cut-off when the user pauses.
    - **Static Neural Voice Selector Dropdown**: Built a custom static selector linking high-quality Microsoft Edge Neural voices.
+   - **Dynamic Language Selection & Dropdown Fallback**:
+     - Added support for dynamic, dropdown-selected language instructions across `/api/chat`, `/api/upload`, and `/api/upload-image` endpoints.
+     - Implemented a strict warning fallback rule in the system instructions: if the conversation is set to English and the user asks to speak Hindi or change language, Baymax guides them to change the language using the dropdown at the top: *"You can choose/change the language from the dropdown at the top. Whatever language you select, I will use the same language."*
+     - Recreated chat session objects dynamically to update the system instructions when language settings are toggled mid-conversation, retaining chat history.
    
 3. **Configuration & Dependencies**:
    - Wrote a detailed `README.md`.
@@ -52,3 +56,8 @@ This walkthrough documents the implementation and verification details of **Baym
 The home page has transitioned to a warm off-white layout. The WebGL Threads flow beautifully behind a central transparent full-width capabilities slider:
 
 ![Landing Page Revamp](/Users/jyoti.jena/.gemini/antigravity-ide/brain/83b03aa5-c268-4378-85e6-7e3366d7e801/initial_landing_page_view_1783444276817.png)
+
+### Dynamic Language Dropdown Fallback Verification
+If the user asks to change language or talk in Hindi while the dropdown language configuration is set to English, Baymax successfully reminds the user to use the dropdown to switch modes:
+
+![Hindi Dropdown Fallback Dialog](file:///Users/jyoti.jena/.gemini/antigravity-ide/brain/26a8d847-945a-43e5-af1c-ee24519aa49c/hindi_fallback_response_1783525817319.png)

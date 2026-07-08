@@ -1323,7 +1323,8 @@
                     },
                     body: JSON.stringify({
                         session_id: sessionId,
-                        message: queryText
+                        message: queryText,
+                        language: document.getElementById('langSelect')?.value || 'en-US'
                     })
                 });
 
@@ -1390,6 +1391,7 @@
             formData.append("file", file);
             formData.append("session_id", sessionId);
             formData.append("message", "Here is my PDF report. Please analyze the findings, explain any biomarkers or medical values, and provide clinical insights.");
+            formData.append("language", document.getElementById('langSelect')?.value || 'en-US');
 
             try {
                 const response = await fetch('/api/upload', {
@@ -1734,6 +1736,7 @@
             formData.append("file", file);
             formData.append("session_id", sessionId);
             formData.append("message", "Here is a photo of my symptom. Please analyze what condition it might be, provide helpful clinical insights, list potential OTC relief options, and caution me on warning signs.");
+            formData.append("language", document.getElementById('langSelect')?.value || 'en-US');
             
             try {
                 const response = await fetch('/api/upload-image', {
