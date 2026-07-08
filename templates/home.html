@@ -891,16 +891,33 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Card 4: Webcam Visual Checker -->
+                    <div class="capability-card">
+                        <div class="capability-card-inner" onclick="triggerQuickConsult('Camera');">
+                            <div class="capability-icon-wrapper">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </div>
+                            <h2 class="capability-title">Webcam Visual Checker</h2>
+                            <p class="capability-desc">Capture and submit a photo of physical symptoms like skin irritation, rashes, or redness for comforting visual diagnosis and clinical assessment by Gemini.</p>
+                            <button class="capability-action-btn">
+                                <span>Launch Visual Checker</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-           
 
             <!-- Navigation Indicator Dots -->
             <div class="capabilities-indicators" id="sliderIndicators">
                 <div class="capabilities-indicator active" onclick="goToSlide(0);"></div>
                 <div class="capabilities-indicator" onclick="goToSlide(1);"></div>
                 <div class="capabilities-indicator" onclick="goToSlide(2);"></div>
+                <div class="capabilities-indicator" onclick="goToSlide(3);"></div>
             </div>
         </div>
 
@@ -939,7 +956,7 @@
     <!-- Script Navigation Logic -->
     <script>
         let currentSlide = 0;
-        const totalSlides = 3;
+        const totalSlides = 4;
         let slideInterval = null;
 
         function goToSlide(index) {
@@ -975,6 +992,8 @@
         function triggerQuickConsult(topic) {
             if (topic === 'Doctor' || topic === 'general') {
                 window.location.href = '/consult';
+            } else if (topic === 'Camera') {
+                window.location.href = '/consult?camera=true';
             } else {
                 window.location.href = `/consult?topic=${encodeURIComponent(topic)}`;
             }

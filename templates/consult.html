@@ -1601,6 +1601,13 @@
                 // Default immediate wakeup on direct consultation access
                 wakeUpBaymax();
             }
+
+            // Auto-trigger camera modal if redirected from the Visual Checker card on the landing page
+            if (urlParams.get('camera') === 'true') {
+                setTimeout(() => {
+                    openCamera();
+                }, 1000); // Wait 1s for audio and welcome elements to settle
+            }
         });
 
         // Camera Feature JS Controllers
