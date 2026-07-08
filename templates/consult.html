@@ -556,6 +556,164 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* Camera trigger style matching plus button */
+        .camera-trigger {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .camera-trigger:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        /* Camera Modal Overlay */
+        .camera-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .camera-modal.active {
+            display: flex;
+        }
+        .camera-modal-content {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            padding: 24px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalScaleUp {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .camera-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0, 0, 0, 0.05);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .camera-modal-close:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        .camera-modal-close svg {
+            width: 16px;
+            height: 16px;
+        }
+        .camera-modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        .camera-viewport-container {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: #0f172a;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+        }
+        #cameraVideo, #cameraPreviewImg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .camera-modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-camera-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .btn-camera-action.primary {
+            background: var(--accent-color);
+            color: white;
+        }
+        .btn-camera-action.secondary {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-camera-action.success {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+        .btn-camera-action:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+        .btn-camera-action svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Styling for sent thumbnail images inside message bubbles */
+        .chat-image-thumbnail {
+            max-width: 240px;
+            max-height: 180px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-top: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease;
+        }
+        .chat-image-thumbnail:hover {
+            transform: scale(1.02);
+        }
     </style>
 </head>
 <body>
@@ -566,6 +724,10 @@
             Baymax AI
         </div>
         <div class="header-controls">
+            <select id="langSelect" class="select-voice" title="Speech Language" style="max-width: 140px;">
+                <option value="en-US">English (US)</option>
+                <option value="hi-IN">हिन्दी (Hindi)</option>
+            </select>
             <select id="voiceSelect" class="select-voice" title="Choose Voice"></select>
             <button class="btn-reset" onclick="resetConversation()">Clear Session</button>
         </div>
@@ -610,22 +772,70 @@
             
             <!-- Fallback text input bar -->
             <form class="input-bar" id="inputForm" onsubmit="handleTextSubmit(event)">
-                <label class="plus-btn" for="fileUploadInput" title="Upload PDF report">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                </label>
-                <input type="file" id="fileUploadInput" accept=".pdf" style="display: none;" onchange="handleFileUpload(event)">
+                <div class="input-actions-left" style="display: flex; gap: 8px; align-items: center;">
+                    <label class="plus-btn" for="fileUploadInput" title="Upload PDF report">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </label>
+                    <input type="file" id="fileUploadInput" accept=".pdf" style="display: none;" onchange="handleFileUpload(event)">
+                    
+                    <button type="button" class="camera-trigger" id="cameraTriggerBtn" title="Take photo with camera">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                    </button>
+                </div>
                 <input type="text" id="userInput" placeholder="Type a message or symptom here..." autocomplete="off">
                 <button type="submit" class="btn-send">Send</button>
             </form>
         </div>
     </main>
 
+    <!-- Webcam Modal -->
+    <div class="camera-modal" id="cameraModal">
+        <div class="camera-modal-content">
+            <button type="button" class="camera-modal-close" id="cameraCloseBtn" title="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h3 class="camera-modal-title">Capture Photo</h3>
+            
+            <div class="camera-viewport-container">
+                <video id="cameraVideo" autoplay playsinline></video>
+                <img id="cameraPreviewImg" style="display: none;" alt="Captured preview">
+                <canvas id="cameraCanvas" style="display: none;"></canvas>
+            </div>
+            
+            <div class="camera-modal-actions">
+                <button type="button" class="btn-camera-action primary" id="captureBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    <span>Capture Photo</span>
+                </button>
+                <button type="button" class="btn-camera-action secondary" id="retakeBtn" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span>Retake</span>
+                </button>
+                <button type="button" class="btn-camera-action success" id="sendPhotoBtn" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    <span>Send Photo</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Session ID generator
-        const sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
+        // Session ID generator & check URL params for resumption
+        const urlParams = new URLSearchParams(window.location.search);
+        let sessionId = urlParams.get('session_id');
+        let isResumedSession = false;
+        
+        if (!sessionId) {
+            sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
+        } else {
+            isResumedSession = true;
+        }
         
         // Element selectors
         const siriClassicLine = document.getElementById('siriClassicLine');
@@ -654,8 +864,12 @@
             { name: "en-US-GuyNeural", label: "Guy (Male, US) - Soft & Calm" },
             { name: "en-US-BrianNeural", label: "Brian (Male, UK) - Deep Male" },
             { name: "en-US-JennyNeural", label: "Jenny (Female, US) - Google US English Style" },
-            { name: "en-US-AnaNeural", label: "Ana (Female, US) - Soft Female" }
+            { name: "en-US-AnaNeural", label: "Ana (Female, US) - Soft Female" },
+            { name: "hi-IN-MadhurNeural", label: "Madhur (Male, India) - Hindi" },
+            { name: "hi-IN-SwaraNeural", label: "Swara (Female, India) - Hindi" }
         ];
+
+        const langSelect = document.getElementById('langSelect');
 
         function loadVoices() {
             voiceSelect.innerHTML = '';
@@ -679,16 +893,73 @@
         loadVoices();
         
         voiceSelect.addEventListener('change', () => {
-            localStorage.setItem('baymax_voice', voiceSelect.value);
+            const selectedVoice = voiceSelect.value;
+            localStorage.setItem('baymax_voice', selectedVoice);
             localStorage.setItem('baymax_voice_chosen', 'true');
-            speak("Hello. I am Baymax, your personal healthcare companion.");
+            
+            // Link voice language to Speech Input Language
+            if (selectedVoice.startsWith("hi-IN")) {
+                if (langSelect) {
+                    langSelect.value = "hi-IN";
+                    localStorage.setItem('baymax_lang', "hi-IN");
+                    if (recognition) {
+                        recognition.lang = "hi-IN";
+                    }
+                }
+                speak("नमस्ते। मैं बेमैक्स हूँ, आपका व्यक्तिगत स्वास्थ्य सहायक।");
+            } else {
+                if (langSelect) {
+                    langSelect.value = "en-US";
+                    localStorage.setItem('baymax_lang', "en-US");
+                    if (recognition) {
+                        recognition.lang = "en-US";
+                    }
+                }
+                speak("Hello. I am Baymax, your personal healthcare companion.");
+            }
         });
+
+        if (langSelect) {
+            langSelect.addEventListener('change', () => {
+                const selectedLang = langSelect.value;
+                localStorage.setItem('baymax_lang', selectedLang);
+                if (recognition) {
+                    recognition.lang = selectedLang;
+                    if (isListening) {
+                        stopListening();
+                        setTimeout(() => {
+                            if (isAwake && !isSpeaking) {
+                                startListening();
+                            }
+                        }, 300);
+                    }
+                }
+                
+                // Auto-switch voice gender profile to match language
+                const currentVoice = voiceSelect.value;
+                if (selectedLang === "hi-IN" && !currentVoice.startsWith("hi-IN")) {
+                    const newVoice = (currentVoice.includes("Jenny") || currentVoice.includes("Ana")) ? "hi-IN-SwaraNeural" : "hi-IN-MadhurNeural";
+                    voiceSelect.value = newVoice;
+                    localStorage.setItem('baymax_voice', newVoice);
+                } else if (selectedLang === "en-US" && currentVoice.startsWith("hi-IN")) {
+                    const newVoice = currentVoice.includes("Swara") ? "en-US-JennyNeural" : "en-US-AndrewNeural";
+                    voiceSelect.value = newVoice;
+                    localStorage.setItem('baymax_voice', newVoice);
+                }
+            });
+        }
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
-            recognition.lang = 'en-US';
+            
+            // Set initial language from localStorage or dropdown
+            const initialLang = localStorage.getItem('baymax_lang') || (langSelect ? langSelect.value : 'en-US');
+            recognition.lang = initialLang;
+            if (langSelect) {
+                langSelect.value = initialLang;
+            }
 
             recognition.onstart = () => {
                 isListening = true;
@@ -843,7 +1114,11 @@
                 window.speechSynthesis.speak(triggerGreeting);
             }
 
-            const greetingText = "Hello, I'm Baymax. Your personal healthcare companion. To better assist you, may I know your name?";
+            const currentVoice = voiceSelect.value;
+            let greetingText = "Hello, I'm Baymax. Your personal healthcare companion. To better assist you, may I know your name?";
+            if (currentVoice.startsWith("hi-IN")) {
+                greetingText = "नमस्ते, मैं बेमैक्स हूँ। आपका व्यक्तिगत स्वास्थ्य सहायक। आपकी बेहतर सहायता के लिए, क्या मैं आपका नाम जान सकता हूँ?";
+            }
             appendMessage('baymax', `<p>${greetingText}</p>`);
             
             speak(greetingText, () => {
@@ -880,14 +1155,29 @@
         }
 
         function cleanTextForAudioAPI(text) {
-            let clean = text.replace(/[^a-zA-Z0-9.,?!'\s]/g, '');
+            // Keep English alphanumeric, Devanagari (Hindi) character range, and common punctuation/spaces
+            let clean = text.replace(/[^\u0900-\u097Fa-zA-Z0-9.,?!'\s\u0964\u0965]/g, '');
             return clean.trim();
+        }
+
+        // Helper to determine the voice to use for a specific sentence, auto-detecting Hindi
+        function getVoiceForText(text, defaultVoice) {
+            const hasHindi = /[\u0900-\u097F]/.test(text);
+            if (hasHindi) {
+                // If current default voice is female, choose Swara, else Madhur
+                if (defaultVoice.includes("Jenny") || defaultVoice.includes("Ana") || defaultVoice.includes("Swara")) {
+                    return "hi-IN-SwaraNeural";
+                }
+                return "hi-IN-MadhurNeural";
+            }
+            return defaultVoice;
         }
 
         async function speak(text, callback) {
             stopSpeechQueue();
             
-            let rawSentences = text.split(/(?<=[.?!])\s+/);
+            // Split sentences on English (.?!) and Devanagari (।॥) sentence terminators
+            let rawSentences = text.split(/(?<=[.?!।॥])\s+/);
             audioQueue = rawSentences
                 .map(s => cleanTextForAudioAPI(s))
                 .filter(s => s.length > 0);
@@ -910,13 +1200,17 @@
             }
             
             const textToSpeak = audioQueue[queueIndex];
-            const activeVoice = voiceSelect.value;
+            const defaultVoice = voiceSelect.value;
+            const activeVoice = getVoiceForText(textToSpeak, defaultVoice);
             
             try {
                 let audioBlobUrl = prefetchCache[queueIndex];
                 
                 if (!audioBlobUrl) {
                     const response = await fetch(`/api/tts?text=${encodeURIComponent(textToSpeak)}&voice=${encodeURIComponent(activeVoice)}`);
+                    if (!response.ok) {
+                        throw new Error(`Server returned status ${response.status}`);
+                    }
                     const blob = await response.blob();
                     audioBlobUrl = URL.createObjectURL(blob);
                 }
@@ -934,7 +1228,7 @@
                 // Prefetch next sentence in queue in background
                 const nextIdx = queueIndex + 1;
                 if (nextIdx < audioQueue.length && !prefetchCache[nextIdx]) {
-                    prefetchNextSentence(nextIdx, activeVoice);
+                    prefetchNextSentence(nextIdx, defaultVoice);
                 }
                 
                 currentAudio.onended = () => {
@@ -950,17 +1244,66 @@
                 };
                 
             } catch (err) {
-                console.error("Audio playback error:", err);
-                setFaceState('idle');
-                queueIndex++;
-                playNextSentence(finalCallback);
+                console.warn("Audio playback error, falling back to Web Speech Synthesis API:", err);
+                
+                // FALLBACK: Use Web Speech Synthesis API (local browser TTS)
+                if (window.speechSynthesis) {
+                    setFaceState('speaking');
+                    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                    
+                    // Try to match the language
+                    const hasHindi = /[\u0900-\u097F]/.test(textToSpeak);
+                    utterance.lang = hasHindi ? 'hi-IN' : 'en-US';
+                    
+                    // Find a matching voice in the browser's voice list
+                    const voices = window.speechSynthesis.getVoices();
+                    let matchedVoice = null;
+                    
+                    if (hasHindi) {
+                        matchedVoice = voices.find(v => v.lang.startsWith('hi'));
+                    } else {
+                        const isFemale = activeVoice.includes("Jenny") || activeVoice.includes("Ana") || activeVoice.includes("Swara");
+                        matchedVoice = voices.find(v => {
+                            const nameLower = v.name.toLowerCase();
+                            const isVoiceFemale = nameLower.includes('female') || nameLower.includes('zira') || nameLower.includes('hazel') || nameLower.includes('google us english');
+                            return v.lang.startsWith('en') && (isFemale === isVoiceFemale);
+                        });
+                    }
+                    
+                    if (matchedVoice) {
+                        utterance.voice = matchedVoice;
+                    }
+                    
+                    utterance.rate = 0.85; // slightly slower pacing
+                    utterance.pitch = 0.9;
+                    
+                    utterance.onend = () => {
+                        setFaceState('idle');
+                        queueIndex++;
+                        playNextSentence(finalCallback);
+                    };
+                    
+                    utterance.onerror = (e) => {
+                        console.error("Web Speech Synthesis error:", e);
+                        setFaceState('idle');
+                        queueIndex++;
+                        playNextSentence(finalCallback);
+                    };
+                    
+                    window.speechSynthesis.speak(utterance);
+                } else {
+                    setFaceState('idle');
+                    queueIndex++;
+                    playNextSentence(finalCallback);
+                }
             }
         }
 
         async function prefetchNextSentence(index, voice) {
             try {
                 const nextText = audioQueue[index];
-                const response = await fetch(`/api/tts?text=${encodeURIComponent(nextText)}&voice=${encodeURIComponent(voice)}`);
+                const activeVoice = getVoiceForText(nextText, voice);
+                const response = await fetch(`/api/tts?text=${encodeURIComponent(nextText)}&voice=${encodeURIComponent(activeVoice)}`);
                 const blob = await response.blob();
                 prefetchCache[index] = URL.createObjectURL(blob);
             } catch (e) {
@@ -1064,6 +1407,7 @@
                 const uploadingMsgEl = document.getElementById(uploadingMsgId);
                 if (uploadingMsgEl) {
                     uploadingMsgEl.parentElement.innerHTML = data.response_html;
+                    saveMessageToLocalStorage(sessionId, 'baymax', data.response_html);
                 } else {
                     appendMessage('baymax', data.response_html);
                 }
@@ -1107,6 +1451,21 @@
                 chatLogs.innerHTML = '';
                 stopSpeechQueue();
                 
+                // Clear from local storage
+                try {
+                    let sessions = JSON.parse(localStorage.getItem('baymax_chat_sessions') || '{}');
+                    if (sessions[sessionId]) {
+                        delete sessions[sessionId];
+                        localStorage.setItem('baymax_chat_sessions', JSON.stringify(sessions));
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+                
+                // Generate a new session ID for the reset chat
+                sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
+                isResumedSession = false;
+                
                 const clearText = "Hello! I am Baymax, your personal healthcare companion. To better assist you, may I know your name?";
                 appendMessage('baymax', `<p>${clearText}</p>`);
                 speak(clearText, () => {
@@ -1119,12 +1478,59 @@
             }
         }
 
-        function appendMessage(sender, contentHTML) {
+        function saveMessageToLocalStorage(sid, sender, htmlContent) {
+            try {
+                let sessions = JSON.parse(localStorage.getItem('baymax_chat_sessions') || '{}');
+                if (!sessions[sid]) {
+                    sessions[sid] = {
+                        id: sid,
+                        timestamp: Date.now(),
+                        title: 'New Consultation',
+                        messages: []
+                    };
+                }
+                
+                sessions[sid].messages.push({
+                    sender: sender,
+                    html: htmlContent
+                });
+                
+                sessions[sid].timestamp = Date.now();
+                
+                // Generate title from first user message
+                if (sender === 'user' && (sessions[sid].title === 'New Consultation' || !sessions[sid].title || sessions[sid].title.startsWith('New Consultation'))) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = htmlContent;
+                    const textContent = tempDiv.innerText || tempDiv.textContent || '';
+                    let titleText = textContent.trim().substring(0, 35);
+                    if (textContent.trim().length > 35) {
+                        titleText += '...';
+                    }
+                    sessions[sid].title = titleText || 'Consultation Session';
+                }
+                
+                localStorage.setItem('baymax_chat_sessions', JSON.stringify(sessions));
+            } catch (e) {
+                console.error("Error saving message to localStorage:", e);
+            }
+        }
+
+        function appendMessage(sender, contentHTML, shouldSave = true) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
             msgDiv.innerHTML = contentHTML;
             chatLogs.appendChild(msgDiv);
             chatLogs.scrollTop = chatLogs.scrollHeight;
+            
+            // Save to localStorage if shouldSave is true and it's not a temporary/system message
+            const isSystemMessage = contentHTML.includes('id="msg_') || 
+                                    contentHTML.includes('color: #ef4444;') || 
+                                    contentHTML.includes('Microphone deactivated') || 
+                                    contentHTML.includes('having trouble connecting');
+            if (shouldSave && sessionId && !isSystemMessage) {
+                saveMessageToLocalStorage(sessionId, sender, contentHTML);
+            }
+            
             return msgDiv;
         }
 
@@ -1136,7 +1542,27 @@
             const urlParams = new URLSearchParams(window.location.search);
             const topic = urlParams.get('topic');
             
-            if (topic) {
+            if (isResumedSession) {
+                // Load messages from localStorage
+                try {
+                    const sessions = JSON.parse(localStorage.getItem('baymax_chat_sessions') || '{}');
+                    const session = sessions[sessionId];
+                    if (session && session.messages && session.messages.length > 0) {
+                        isAwake = true;
+                        setFaceState('idle');
+                        session.messages.forEach(msg => {
+                            appendMessage(msg.sender, msg.html, false);
+                        });
+                    } else {
+                        isResumedSession = false;
+                        wakeUpBaymax();
+                    }
+                } catch (e) {
+                    console.error("Error loading session:", e);
+                    isResumedSession = false;
+                    wakeUpBaymax();
+                }
+            } else if (topic) {
                 // Wakes up and triggers the user query automatically
                 isAwake = true;
                 setFaceState('idle');
@@ -1174,6 +1600,172 @@
             } else {
                 // Default immediate wakeup on direct consultation access
                 wakeUpBaymax();
+            }
+        });
+
+        // Camera Feature JS Controllers
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraTriggerBtn = document.getElementById('cameraTriggerBtn');
+        const cameraCloseBtn = document.getElementById('cameraCloseBtn');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraPreviewImg = document.getElementById('cameraPreviewImg');
+        const cameraCanvas = document.getElementById('cameraCanvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const sendPhotoBtn = document.getElementById('sendPhotoBtn');
+        
+        let cameraStream = null;
+        let capturedImageBlob = null;
+        
+        async function startCamera() {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+                });
+                cameraVideo.srcObject = cameraStream;
+                cameraVideo.style.display = 'block';
+                cameraPreviewImg.style.display = 'none';
+                
+                // Show capture, hide retake/send
+                captureBtn.style.display = 'flex';
+                retakeBtn.style.display = 'none';
+                sendPhotoBtn.style.display = 'none';
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                alert("Could not access camera. Please verify camera permissions in your browser.");
+                closeCamera();
+            }
+        }
+        
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            cameraVideo.srcObject = null;
+        }
+        
+        function openCamera() {
+            cameraModal.classList.add('active');
+            startCamera();
+        }
+        
+        function closeCamera() {
+            cameraModal.classList.remove('active');
+            stopCamera();
+            capturedImageBlob = null;
+        }
+        
+        if (cameraTriggerBtn) {
+            cameraTriggerBtn.addEventListener('click', openCamera);
+        }
+        if (cameraCloseBtn) {
+            cameraCloseBtn.addEventListener('click', closeCamera);
+        }
+        
+        // Capture frame from video to canvas
+        captureBtn.addEventListener('click', () => {
+            if (!cameraStream) return;
+            
+            const width = cameraVideo.videoWidth;
+            const height = cameraVideo.videoHeight;
+            cameraCanvas.width = width;
+            cameraCanvas.height = height;
+            
+            const context = cameraCanvas.getContext('2d');
+            context.drawImage(cameraVideo, 0, 0, width, height);
+            
+            cameraCanvas.toBlob((blob) => {
+                capturedImageBlob = blob;
+                const dataUrl = URL.createObjectURL(blob);
+                cameraPreviewImg.src = dataUrl;
+                
+                // Toggle display
+                cameraVideo.style.display = 'none';
+                cameraPreviewImg.style.display = 'block';
+                
+                captureBtn.style.display = 'none';
+                retakeBtn.style.display = 'flex';
+                sendPhotoBtn.style.display = 'flex';
+            }, 'image/jpeg', 0.85);
+        });
+        
+        // Retake snapshot
+        retakeBtn.addEventListener('click', () => {
+            if (cameraPreviewImg.src) {
+                URL.revokeObjectURL(cameraPreviewImg.src);
+            }
+            cameraPreviewImg.src = '';
+            capturedImageBlob = null;
+            
+            cameraVideo.style.display = 'block';
+            cameraPreviewImg.style.display = 'none';
+            
+            captureBtn.style.display = 'flex';
+            retakeBtn.style.display = 'none';
+            sendPhotoBtn.style.display = 'none';
+        });
+        
+        // Confirm & Send Photo to backend
+        sendPhotoBtn.addEventListener('click', async () => {
+            if (!capturedImageBlob) return;
+            
+            const file = new File([capturedImageBlob], "symptom_snapshot.jpg", { type: "image/jpeg" });
+            const base64DataUrl = cameraCanvas.toDataURL('image/jpeg', 0.7);
+            closeCamera();
+            
+            const baymaxMsgId = 'msg_' + Date.now();
+            
+            appendMessage('user', `Sent a photo:<br><img src="${base64DataUrl}" class="chat-image-thumbnail" onclick="window.open(this.src)" title="Click to view full screen">`);
+            appendMessage('baymax', `<p id="${baymaxMsgId}">Analyzing your photo... Please wait.</p>`);
+            
+            // Set face state to thinking
+            setFaceState('thinking');
+            stopSpeechQueue();
+            
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("session_id", sessionId);
+            formData.append("message", "Here is a photo of my symptom. Please analyze what condition it might be, provide helpful clinical insights, list potential OTC relief options, and caution me on warning signs.");
+            
+            try {
+                const response = await fetch('/api/upload-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error("Failed to upload or analyze photo.");
+                }
+                
+                const data = await response.json();
+                
+                // Replace loading bubble text
+                const loadingBubble = document.getElementById(baymaxMsgId);
+                if (loadingBubble) {
+                    loadingBubble.parentElement.innerHTML = data.display_html;
+                    // Save to local storage history
+                    saveMessageToLocalStorage(sessionId, 'baymax', data.display_html);
+                } else {
+                    appendMessage('baymax', data.display_html);
+                }
+                
+                speak(data.tts_text, () => {
+                    if (isAwake && !isSpeaking) {
+                        startListening();
+                    }
+                });
+            } catch (err) {
+                console.error("Error analyzing photo:", err);
+                const loadingBubble = document.getElementById(baymaxMsgId);
+                if (loadingBubble) {
+                    loadingBubble.parentElement.innerHTML = "<p>I encountered an error analyzing your photo. Please try again.</p>";
+                } else {
+                    appendMessage('baymax', "<p>I encountered an error analyzing your photo. Please try again.</p>");
+                }
+                speak("I encountered an error analyzing your photo. Please try again.", () => {
+                    if (isAwake) startListening();
+                });
             }
         });
     </script>

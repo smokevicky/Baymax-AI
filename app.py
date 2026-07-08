@@ -53,8 +53,9 @@ chat_sessions = {}
 
 SYSTEM_INSTRUCTION = (
     "You are Baymax AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
+    "You are fully bilingual and can understand and respond in English and Hindi. If the user initiates the conversation or responds in Hindi, you must reply in Hindi, maintaining the same warm, caring tone and structured diagnostic/treatment guidance.\n"
     "DO NOT introduce yourself or say 'Hello, I am Baymax' or similar greeting lines on every turn. Only greet the user in the initial greeting (which is handled automatically). For all subsequent turns, dive directly into the answer or symptom analysis without repeating greetings or introductions.\n"
-    "The conversation starts with the user being asked for their name. Once they tell you their name, capture and remember it. Address them by their name warmly in your first response (e.g. 'Hello Vicky, I am here to help you.') and refer to their name naturally throughout the conversation turns.\n"
+    "The conversation starts with the user being asked for their name. Once they tell you their name, capture and remember it. Address them by their name warmly in your first response (e.g. 'Hello Vicky, I am here to help you.' or 'नमस्ते विक्की, मैं आपकी मदद करने के लिए यहाँ हूँ।') and refer to their name naturally throughout the conversation turns.\n"
     "When a user asks for medicines, symptom relief, or medical advice, you must directly recommend suitable standard over-the-counter (OTC) medicines (e.g., Paracetamol, Ibuprofen, Loperamide, Cetirizine, Antacids, Cough Syrup, etc.).\n"
     "For each suggested medicine, you must provide a detailed daily schedule containing:\n"
     "1. Dosage (e.g., 500mg)\n"
@@ -62,6 +63,7 @@ SYSTEM_INSTRUCTION = (
     "3. Food Timing: State explicitly whether it should be taken Before Food (BF) or After Food (AF).\n"
     "You MUST output these recommendations directly and clearly in a structured list or table.\n"
     "DO NOT refuse to suggest medicine names. DO NOT state that you are an AI assistant or cannot prescribe.\n"
+    "DO NOT state that you cannot speak, cannot produce voice, or can only communicate in writing. You are a speaking robot whose responses are directly spoken aloud to the patient by the interface. Write all responses as spoken text.\n"
     "DO NOT make up fictional roleplay excuses or state that your 'online diagnostic database is experiencing high traffic' or that you are 'running on a local backup system'. You have full and unrestricted access to all medical databases. Answer the user directly and immediately without creating fictional constraints.\n"
     "For general symptom checkups, follow up by asking clarifying questions one by one about timelines, severity, and compounding symptoms. Always include a compassionate closing or instructions to seek emergency care for red-flag symptoms."
 )
@@ -479,6 +481,95 @@ async def get_facts():
         facts_cache["data"] = backup_data
         facts_cache["timestamp"] = current_time
         return backup_data
+
+@app.post("/api/upload-image")
+async def upload_image_endpoint(
+    session_id: str = Form(...),
+    message: str = Form("Please analyze this photo."),
+    file: UploadFile = File(...)
+):
+    """
+    Accepts captured image upload, converts it to bytes, sends it to the Gemini session,
+    and returns display HTML and TTS speech text.
+    """
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are supported")
+
+    try:
+        # Read image bytes
+        image_bytes = await file.read()
+
+        MODEL_ORDER = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-latest"]
+
+        if session_id not in chat_sessions:
+            chat_sessions[session_id] = {
+                "model_index": 0,
+                "chat": client.chats.create(
+                    model=MODEL_ORDER[0],
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM_INSTRUCTION,
+                        temperature=0.7,
+                    )
+                )
+            }
+
+        session = chat_sessions[session_id]
+        response = None
+        prompt_message = message.strip() if message.strip() else "Please analyze this image."
+
+        image_part = types.Part.from_bytes(
+            data=image_bytes,
+            mime_type=file.content_type
+        )
+
+        while True:
+            current_model_name = MODEL_ORDER[session["model_index"]]
+            try:
+                response = session["chat"].send_message([image_part, prompt_message])
+                raw_text = response.text
+                break
+            except Exception as e:
+                error_str = str(e)
+                print(f"Error calling model {current_model_name} with image upload: {error_str}")
+                
+                # Check rate limits or retry triggers
+                if "429" in error_str or "503" in error_str:
+                    if session["model_index"] < len(MODEL_ORDER) - 1:
+                        next_index = session["model_index"] + 1
+                        next_model_name = MODEL_ORDER[next_index]
+                        print(f"Falling back to {next_model_name} for image session {session_id}...")
+                        try:
+                            history = session["chat"].get_history()
+                            new_chat = client.chats.create(
+                                model=next_model_name,
+                                history=history,
+                                config=types.GenerateContentConfig(
+                                    system_instruction=SYSTEM_INSTRUCTION,
+                                    temperature=0.7,
+                                )
+                            )
+                            session["model_index"] = next_index
+                            session["chat"] = new_chat
+                            continue
+                        except Exception as ex:
+                            print(f"Fallback to {next_model_name} failed: {ex}")
+                            raise e
+                raise e
+
+        # Convert raw text to HTML for presentation
+        sanitized_text = sanitize_markdown(raw_text)
+        display_html = markdown.markdown(sanitized_text, extensions=['tables', 'fenced_code'])
+        # Convert raw text to clean speech synthesis structure
+        tts_text = clean_text_for_tts(raw_text)
+
+        return {
+            "tts_text": tts_text,
+            "display_html": display_html
+        }
+
+    except Exception as e:
+        print(f"Error handling image chat request for session {session_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 @app.get("/api/tts")
 async def tts_endpoint(text: str, voice: str = "en-US-AndrewNeural"):
