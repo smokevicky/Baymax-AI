@@ -319,13 +319,46 @@
             scroll-behavior: smooth;
         }
 
-        .message {
+        .message-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
             max-width: 85%;
+            animation: fade-in 0.3s ease;
+        }
+
+        .message-row.user {
+            align-self: flex-end;
+        }
+
+        .message-row.baymax {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .message-avatar svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .message {
             padding: 14px 20px;
             border-radius: 20px;
             font-size: 0.95rem;
             line-height: 1.5;
-            animation: fade-in 0.3s ease;
         }
 
         @keyframes fade-in {
@@ -336,7 +369,6 @@
         .message.user {
             background-color: #f1f5f9;
             color: var(--text-primary);
-            align-self: flex-end;
             border-bottom-right-radius: 4px;
         }
 
@@ -344,7 +376,6 @@
             background-color: #ffffff;
             border: 1px solid var(--border-color);
             color: var(--text-primary);
-            align-self: flex-start;
             border-bottom-left-radius: 4px;
             box-shadow: var(--shadow-sm);
         }
@@ -520,8 +551,15 @@
             .chat-logs {
                 padding: 16px 16px 95px 16px;
             }
-            .message {
+            .message-row {
                 max-width: 95%;
+                gap: 8px;
+            }
+            .message-avatar {
+                width: 30px;
+                height: 30px;
+            }
+            .message {
                 font-size: 0.85rem;
                 padding: 10px 14px;
             }
@@ -656,6 +694,41 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .mirrored {
+            transform: scaleX(-1);
+        }
+        .btn-flip-camera {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .btn-flip-camera:hover {
+            background: rgba(15, 23, 42, 0.85);
+            transform: scale(1.05);
+        }
+        .btn-flip-camera.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        .btn-flip-camera svg {
+            width: 18px;
+            height: 18px;
         }
         .camera-modal-actions {
             display: flex;
@@ -714,6 +787,269 @@
         .chat-image-thumbnail:hover {
             transform: scale(1.02);
         }
+
+        /* Anatomical Body Map Drawer */
+        .stage-content-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .body-map-drawer {
+            width: 0;
+            opacity: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(16px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .body-map-drawer.open {
+            width: 320px;
+            opacity: 1;
+            padding: 20px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .body-map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .body-map-header h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .close-body-map-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 4px;
+        }
+
+        .close-body-map-btn:hover {
+            color: var(--baymax-red);
+        }
+
+        /* View Toggle Styling */
+        .body-map-view-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .view-toggle-btn {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 16px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-toggle-btn.active {
+            background: var(--baymax-red);
+            color: white;
+            border-color: var(--baymax-red);
+        }
+
+        .body-map-instruction {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .body-map-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            min-height: 250px;
+        }
+
+        .human-silhouette-svg {
+            height: 100%;
+            max-height: 320px;
+            width: auto;
+        }
+
+        /* SVG Hotspot and Silhouette styling */
+        .silhouette-outline {
+            fill: #f8fafc;
+            stroke: #e2e8f0;
+            stroke-width: 1.5;
+            transition: all 0.3s ease;
+        }
+
+        .hotspot-node {
+            cursor: pointer;
+        }
+
+        .hotspot-circle {
+            fill: var(--baymax-red);
+            opacity: 0.35;
+            animation: hotspot-pulse 2s infinite ease-in-out;
+            transform-origin: center;
+        }
+
+        .hotspot-core {
+            fill: var(--baymax-red);
+            stroke: #ffffff;
+            stroke-width: 1.5;
+            transition: transform 0.2s ease;
+        }
+
+        /* Highlight silhouette on hover */
+        .hotspot-node:hover ~ .silhouette-outline,
+        .hotspot-node:hover .hotspot-core {
+            transform: scale(1.3);
+        }
+
+        .hotspot-node:hover .hotspot-circle {
+            opacity: 0.6;
+            animation-duration: 0.8s;
+        }
+
+        .hotspot-tooltip {
+            font-size: 10px;
+            font-weight: 700;
+            fill: var(--text-primary);
+            text-anchor: middle;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .hotspot-node:hover .hotspot-tooltip {
+            opacity: 1;
+        }
+
+        /* Quick Symptoms Panel styling */
+        .quick-symptoms-panel {
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quick-symptoms-panel h4 {
+            font-size: 0.75rem;
+            font-weight: 750;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .quick-symptoms-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-height: 110px;
+            overflow-y: auto;
+        }
+
+        .quick-symptom-item {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .quick-symptom-item:hover {
+            background: var(--baymax-red);
+            color: white;
+            border-color: var(--baymax-red);
+        }
+
+        .quick-symptom-item.empty {
+            color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            cursor: default;
+            padding: 0;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        @keyframes hotspot-pulse {
+            0% { transform: scale(1); opacity: 0.35; }
+            50% { transform: scale(1.6); opacity: 0.1; }
+            100% { transform: scale(1); opacity: 0.35; }
+        }
+
+        /* Drawer open toggle button inside chat-header */
+        .btn-body-map-toggle {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-body-map-toggle:hover {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+            background: rgba(0, 0, 0, 0.02);
+        }
+        
+        .btn-body-map-toggle svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Responsive Mobile Drawer Styles */
+        @media (max-width: 900px) {
+            .body-map-drawer.open {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1000;
+                border-radius: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -761,36 +1097,200 @@
             <div class="siri-tooltip" id="siriTooltip">Asleep - Click Wake Up</div>
         </div>
 
-        <!-- Scrollable Conversation Logs -->
-        <div class="chat-container">
-            <div class="chat-header">
-                <div class="chat-title">Consultation Log</div>
-            </div>
-            <div class="chat-logs" id="chatLogs">
-                <!-- Messages will load dynamically here -->
-            </div>
+        <!-- Main Layout Flex wrapper -->
+        <div class="stage-content-wrapper">
             
-            <!-- Fallback text input bar -->
-            <form class="input-bar" id="inputForm" onsubmit="handleTextSubmit(event)">
-                <div class="input-actions-left" style="display: flex; gap: 8px; align-items: center;">
-                    <label class="plus-btn" for="fileUploadInput" title="Upload PDF report">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <!-- Collapsible Body Map Drawer -->
+            <div class="body-map-drawer" id="bodyMapDrawer">
+                <div class="body-map-header">
+                    <h3>Anatomical Body Map</h3>
+                    <button type="button" class="close-body-map-btn" onclick="toggleBodyMap()">×</button>
+                </div>
+                
+                <!-- View Toggle Buttons -->
+                <div class="body-map-view-toggle">
+                    <button type="button" class="view-toggle-btn active" id="btnViewFront" onclick="switchBodyView('front')">Front View</button>
+                    <button type="button" class="view-toggle-btn" id="btnViewBack" onclick="switchBodyView('back')">Back View</button>
+                </div>
+
+                <p class="body-map-instruction">Select front/back view and click a hotspot to pick symptoms.</p>
+                
+                <div class="body-map-content">
+                    <!-- FRONT VIEW SVG -->
+                    <svg viewBox="0 0 200 500" class="human-silhouette-svg" id="silhouetteFront">
+                        <!-- Head outline -->
+                        <ellipse cx="100" cy="80" rx="20" ry="25" class="silhouette-outline" />
+                        <!-- Neck outline -->
+                        <rect x="94" y="103" width="12" height="15" class="silhouette-outline" />
+                        <!-- Chest/Torso outline -->
+                        <path d="M 60,130 C 60,118 75,118 100,118 C 125,118 140,118 140,130 L 132,260 L 68,260 Z" class="silhouette-outline" />
+                        <!-- Left Arm outline -->
+                        <path d="M 60,130 L 40,240 C 37,255 46,260 52,245 L 68,160 Z" class="silhouette-outline" />
+                        <!-- Right Arm outline -->
+                        <path d="M 140,130 L 160,240 C 163,255 154,260 148,245 L 132,160 Z" class="silhouette-outline" />
+                        <!-- Pelvis outline -->
+                        <path d="M 68,260 L 132,260 L 126,300 L 74,300 Z" class="silhouette-outline" />
+                        <!-- Left Leg outline -->
+                        <path d="M 74,300 L 80,440 C 81,455 70,458 70,448 L 74,320 Z" class="silhouette-outline" />
+                        <!-- Right Leg outline -->
+                        <path d="M 126,300 L 120,440 C 119,455 130,458 130,448 L 126,320 Z" class="silhouette-outline" />
+
+                        <!-- Hotspots -->
+                        <!-- Head -->
+                        <g class="hotspot-node" onclick="handleBodyPartClick('Head', 'headache, migraine pressure, or dizziness')">
+                            <circle cx="100" cy="80" r="16" class="hotspot-circle" />
+                            <circle cx="100" cy="80" r="5" class="hotspot-core" />
+                            <text x="100" y="52" class="hotspot-tooltip">Head/Brain</text>
+                        </g>
+
+                        <!-- Chest/Lungs -->
+                        <g class="hotspot-node" onclick="handleBodyPartClick('Chest', 'coughing, chest congestion, or breathing discomfort')">
+                            <circle cx="100" cy="160" r="18" class="hotspot-circle" />
+                            <circle cx="100" cy="160" r="5" class="hotspot-core" />
+                            <text x="100" y="132" class="hotspot-tooltip">Chest/Heart</text>
+                        </g>
+
+                        <!-- Abdomen/Stomach -->
+                        <g class="hotspot-node" onclick="handleBodyPartClick('Abdomen', 'stomach ache, cramps, nausea, or bloating')">
+                            <circle cx="100" cy="220" r="18" class="hotspot-circle" />
+                            <circle cx="100" cy="220" r="5" class="hotspot-core" />
+                            <text x="100" y="192" class="hotspot-tooltip">Abdomen/Stomach</text>
+                        </g>
+
+                        <!-- Left Arm/Shoulder -->
+                        <g class="hotspot-node" onclick="handleBodyPartClick('Left Arm', 'shoulder soreness, elbow ache, or arm numbness')">
+                            <circle cx="52" cy="200" r="12" class="hotspot-circle" />
+                            <circle cx="52" cy="200" r="4" class="hotspot-core" />
+                            <text x="52" y="178" class="hotspot-tooltip">Arm/Shoulder</text>
+                        </g>
+
+                        <!-- Right Arm/Shoulder -->
+                        <g class="hotspot-node" onclick="handleBodyPartClick('Right Arm', 'shoulder soreness, elbow ache, or arm numbness')">
+                            <circle cx="148" cy="200" r="12" class="hotspot-circle" />
+                            <circle cx="148" cy="200" r="4" class="hotspot-core" />
+                        </g>
+
+                        <!-- Legs/Knees -->
+                        <g class="hotspot-node" onclick="handleBodyPartClick('Legs', 'knee stiffness, leg cramps, or ankle swelling')">
+                            <circle cx="100" cy="370" r="18" class="hotspot-circle" />
+                            <circle cx="100" cy="370" r="5" class="hotspot-core" />
+                            <text x="100" y="342" class="hotspot-tooltip">Legs/Knees</text>
+                        </g>
+                    </svg>
+
+                    <!-- BACK VIEW SVG -->
+                    <svg viewBox="0 0 200 500" class="human-silhouette-svg" id="silhouetteBack" style="display: none;">
+                        <!-- Head outline -->
+                        <ellipse cx="100" cy="80" rx="20" ry="25" class="silhouette-outline" />
+                        <!-- Neck outline -->
+                        <rect x="94" y="103" width="12" height="15" class="silhouette-outline" />
+                        <!-- Upper/Lower Back outline -->
+                        <path d="M 60,130 C 60,118 75,118 100,118 C 125,118 140,118 140,130 L 132,260 L 68,260 Z" class="silhouette-outline" />
+                        <!-- Spine Indicator Line -->
+                        <line x1="100" y1="118" x2="100" y2="260" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
+                        <!-- Left Arm outline -->
+                        <path d="M 60,130 L 40,240 C 37,255 46,260 52,245 L 68,160 Z" class="silhouette-outline" />
+                        <!-- Right Arm outline -->
+                        <path d="M 140,130 L 160,240 C 163,255 154,260 148,245 L 132,160 Z" class="silhouette-outline" />
+                        <!-- Pelvis outline -->
+                        <path d="M 68,260 L 132,260 L 126,300 L 74,300 Z" class="silhouette-outline" />
+                        <!-- Left Leg outline -->
+                        <path d="M 74,300 L 80,440 C 81,455 70,458 70,448 L 74,320 Z" class="silhouette-outline" />
+                        <!-- Right Leg outline -->
+                        <path d="M 126,300 L 120,440 C 119,455 130,458 130,448 L 126,320 Z" class="silhouette-outline" />
+
+                        <!-- Hotspots -->
+                        <!-- Neck/Upper Back -->
+                        <g class="hotspot-node" onclick="handleBodyPartClick('Neck & Upper Back', 'neck pain, upper back stiffness, or shoulder tension')">
+                            <circle cx="100" cy="115" r="14" class="hotspot-circle" />
+                            <circle cx="100" cy="115" r="4.5" class="hotspot-core" />
+                            <text x="100" y="94" class="hotspot-tooltip">Neck/Upper Back</text>
+                        </g>
+
+                        <!-- Lower Back -->
+                        <g class="hotspot-node" onclick="handleBodyPartClick('Lower Back', 'lower back soreness, lumbar pain, or sciatica')">
+                            <circle cx="100" cy="220" r="18" class="hotspot-circle" />
+                            <circle cx="100" cy="220" r="5" class="hotspot-core" />
+                            <text x="100" y="192" class="hotspot-tooltip">Lower Back</text>
+                        </g>
+
+                        <!-- Legs (Calves/Hamstrings) -->
+                        <g class="hotspot-node" onclick="handleBodyPartClick('Legs', 'calf cramps, hamstring tension, or heel pain')">
+                            <circle cx="100" cy="370" r="18" class="hotspot-circle" />
+                            <circle cx="100" cy="370" r="5" class="hotspot-core" />
+                            <text x="100" y="342" class="hotspot-tooltip">Legs/Calves</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Quick Symptoms Select Panel -->
+                <div class="quick-symptoms-panel" id="quickSymptomsPanel">
+                    <h4 id="selectedPartTitle">Select a body hotspot</h4>
+                    <div class="quick-symptoms-list" id="quickSymptomsList">
+                        <span class="quick-symptom-item empty">Hover & click a node on the body above to load quick selections.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scrollable Conversation Logs -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="header-avatar" style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; background: var(--baymax-red); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); flex-shrink: 0;">
+                            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                                <defs>
+                                    <linearGradient id="headerAvatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#ff4b4b" />
+                                        <stop offset="100%" stop-color="#ff3b30" />
+                                    </linearGradient>
+                                    <linearGradient id="headerBaymaxBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#ffffff" />
+                                        <stop offset="100%" stop-color="#f1f5f9" />
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="50" cy="50" r="48" fill="url(#headerAvatarGrad)" />
+                                <ellipse cx="50" cy="50" rx="22" ry="15" fill="url(#headerBaymaxBodyGrad)" />
+                                <circle cx="40" cy="50" r="2.5" fill="#0c0d0e" />
+                                <circle cx="60" cy="50" r="2.5" fill="#0c0d0e" />
+                                <line x1="40" y1="50" x2="60" y2="50" stroke="#0c0d0e" stroke-width="1.2" />
+                            </svg>
+                        </div>
+                        <div class="chat-title">Consultation Log</div>
+                    </div>
+                    <button type="button" class="btn-body-map-toggle" onclick="toggleBodyMap()" title="Toggle Anatomical Body Map">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 2a4 4 0 1 0 0 8 4 4 0 1 0 0-8zM12 10v10M6 14h12"/>
                         </svg>
-                    </label>
-                    <input type="file" id="fileUploadInput" accept=".pdf" style="display: none;" onchange="handleFileUpload(event)">
-                    
-                    <button type="button" class="camera-trigger" id="cameraTriggerBtn" title="Take photo with camera">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                            <circle cx="12" cy="13" r="4"></circle>
-                        </svg>
+                        <span>Body Map</span>
                     </button>
                 </div>
-                <input type="text" id="userInput" placeholder="Type a message or symptom here..." autocomplete="off">
-                <button type="submit" class="btn-send">Send</button>
-            </form>
+                <div class="chat-logs" id="chatLogs">
+                    <!-- Messages will load dynamically here -->
+                </div>
+                
+                <!-- Fallback text input bar -->
+                <form class="input-bar" id="inputForm" onsubmit="handleTextSubmit(event)">
+                    <div class="input-actions-left" style="display: flex; gap: 8px; align-items: center;">
+                        <label class="plus-btn" for="fileUploadInput" title="Upload PDF report">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </label>
+                        <input type="file" id="fileUploadInput" accept=".pdf" style="display: none;" onchange="handleFileUpload(event)">
+                        
+                        <button type="button" class="camera-trigger" id="cameraTriggerBtn" title="Take photo with camera">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <input type="text" id="userInput" placeholder="Type a message or symptom here..." autocomplete="off">
+                    <button type="submit" class="btn-send">Send</button>
+                </form>
+            </div>
         </div>
     </main>
 
@@ -806,6 +1306,12 @@
                 <video id="cameraVideo" autoplay playsinline></video>
                 <img id="cameraPreviewImg" style="display: none;" alt="Captured preview">
                 <canvas id="cameraCanvas" style="display: none;"></canvas>
+                <button type="button" class="btn-flip-camera" id="flipCameraBtn" title="Mirror/Unmirror Camera">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 2.14L22 7l-5 4.86M7 21.86L2 17l5-4.86"></path>
+                        <path d="M22 7H9a7 7 0 0 0-7 7v1M2 17h13a7 7 0 0 0 7-7V9"></path>
+                    </svg>
+                </button>
             </div>
             
             <div class="camera-modal-actions">
@@ -1518,10 +2024,62 @@
         }
 
         function appendMessage(sender, contentHTML, shouldSave = true) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = `message-row ${sender}`;
+
+            // Create Avatar Element
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = `message-avatar ${sender}-avatar`;
+            
+            if (sender === 'baymax') {
+                avatarDiv.innerHTML = `
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="avatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ff4b4b" />
+                                <stop offset="100%" stop-color="#ff3b30" />
+                            </linearGradient>
+                            <linearGradient id="baymaxBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="100%" stop-color="#f1f5f9" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="48" fill="url(#avatarGrad)" />
+                        <ellipse cx="50" cy="55" rx="28" ry="32" fill="#ffffff" opacity="0.15" />
+                        <ellipse cx="50" cy="50" rx="22" ry="15" fill="url(#baymaxBodyGrad)" filter="drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.1))" />
+                        <circle cx="40" cy="50" r="2.5" fill="#0c0d0e" />
+                        <circle cx="60" cy="50" r="2.5" fill="#0c0d0e" />
+                        <line x1="40" y1="50" x2="60" y2="50" stroke="#0c0d0e" stroke-width="1.2" />
+                    </svg>
+                `;
+            } else {
+                avatarDiv.innerHTML = `
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="userAvatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#f1f5f9" />
+                                <stop offset="100%" stop-color="#cbd5e1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="48" fill="url(#userAvatarGrad)" />
+                        <path d="M50 45a15 15 0 1 0 0-30 15 15 0 0 0 0 30zM22 80c0-14 12-20 28-20s28 6 28 20" stroke="#64748b" stroke-width="5" fill="none" stroke-linecap="round" />
+                    </svg>
+                `;
+            }
+
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
             msgDiv.innerHTML = contentHTML;
-            chatLogs.appendChild(msgDiv);
+            
+            if (sender === 'baymax') {
+                rowDiv.appendChild(avatarDiv);
+                rowDiv.appendChild(msgDiv);
+            } else {
+                rowDiv.appendChild(msgDiv);
+                rowDiv.appendChild(avatarDiv);
+            }
+
+            chatLogs.appendChild(rowDiv);
             chatLogs.scrollTop = chatLogs.scrollHeight;
             
             // Save to localStorage if shouldSave is true and it's not a temporary/system message
@@ -1612,6 +2170,86 @@
             }
         });
 
+        // Anatomical Body Map Controllers
+        const symptomsMap = {
+            'Head': ['Headache', 'Migraine Pressure', 'Dizziness', 'Fever & Chills', 'Brain Fog'],
+            'Chest': ['Coughing', 'Chest Tightness', 'Shortness of Breath', 'Palpitations', 'Sore Throat'],
+            'Abdomen': ['Stomach Ache', 'Nausea/Reflux', 'Bloating', 'Abdominal Cramps', 'Indigestion'],
+            'Left Arm': ['Shoulder Pain', 'Joint Stiffness', 'Numbness', 'Muscle Strain'],
+            'Right Arm': ['Shoulder Pain', 'Joint Stiffness', 'Numbness', 'Muscle Strain'],
+            'Legs': ['Knee Stiffness', 'Leg Cramps', 'Ankle Swelling', 'Joint Pain', 'Calf Soreness'],
+            'Neck & Upper Back': ['Neck Stiffness', 'Muscle Spasms', 'Upper Back Ache', 'Shoulder Tension'],
+            'Lower Back': ['Lumbar Soreness', 'Sciatica Pain', 'Lower Back Stiffness']
+        };
+
+        function toggleBodyMap() {
+            const drawer = document.getElementById('bodyMapDrawer');
+            if (drawer) {
+                drawer.classList.toggle('open');
+            }
+        }
+
+        function switchBodyView(view) {
+            const frontSvg = document.getElementById('silhouetteFront');
+            const backSvg = document.getElementById('silhouetteBack');
+            const btnFront = document.getElementById('btnViewFront');
+            const btnBack = document.getElementById('btnViewBack');
+            
+            if (view === 'front') {
+                frontSvg.style.display = 'block';
+                backSvg.style.display = 'none';
+                btnFront.classList.add('active');
+                btnBack.classList.remove('active');
+            } else {
+                frontSvg.style.display = 'none';
+                backSvg.style.display = 'block';
+                btnFront.classList.remove('active');
+                btnBack.classList.add('active');
+            }
+        }
+
+        function handleBodyPartClick(partName, defaultSymptom) {
+            const titleEl = document.getElementById('selectedPartTitle');
+            const listEl = document.getElementById('quickSymptomsList');
+            
+            if (titleEl && listEl) {
+                titleEl.innerText = partName + " Symptoms";
+                listEl.innerHTML = '';
+                
+                const symptoms = symptomsMap[partName] || [];
+                symptoms.forEach(sym => {
+                    const btn = document.createElement('span');
+                    btn.className = 'quick-symptom-item';
+                    btn.innerText = sym;
+                    btn.onclick = () => {
+                        if (window.innerWidth <= 900) {
+                            toggleBodyMap();
+                        }
+                        
+                        // Populate and auto-submit
+                        userInput.value = `I am experiencing ${sym.toLowerCase()} in my ${partName.toLowerCase()} region.`;
+                        userInput.focus();
+                        
+                        const form = document.getElementById('inputForm');
+                        if (form) {
+                            // Trigger a form submission to consult Baymax instantly
+                            const submitBtn = form.querySelector('button[type="submit"]');
+                            if (submitBtn) {
+                                submitBtn.click();
+                            }
+                        }
+                    };
+                    listEl.appendChild(btn);
+                });
+            }
+            
+            // Fallback input text cursor placement
+            userInput.value = `I have a symptom near my ${partName} region: `;
+            userInput.focus();
+            const length = userInput.value.length;
+            userInput.setSelectionRange(length, length);
+        }
+
         // Camera Feature JS Controllers
         const cameraModal = document.getElementById('cameraModal');
         const cameraTriggerBtn = document.getElementById('cameraTriggerBtn');
@@ -1625,6 +2263,23 @@
         
         let cameraStream = null;
         let capturedImageBlob = null;
+        let isMirrored = false;
+        
+        const flipCameraBtn = document.getElementById('flipCameraBtn');
+        if (flipCameraBtn) {
+            flipCameraBtn.addEventListener('click', () => {
+                isMirrored = !isMirrored;
+                if (isMirrored) {
+                    cameraVideo.classList.add('mirrored');
+                    cameraPreviewImg.classList.add('mirrored');
+                    flipCameraBtn.classList.add('active');
+                } else {
+                    cameraVideo.classList.remove('mirrored');
+                    cameraPreviewImg.classList.remove('mirrored');
+                    flipCameraBtn.classList.remove('active');
+                }
+            });
+        }
         
         async function startCamera() {
             try {
@@ -1682,6 +2337,13 @@
             cameraCanvas.height = height;
             
             const context = cameraCanvas.getContext('2d');
+            
+            // If mirrored mode is active, flip horizontally on the canvas
+            if (isMirrored) {
+                context.translate(width, 0);
+                context.scale(-1, 1);
+            }
+            
             context.drawImage(cameraVideo, 0, 0, width, height);
             
             cameraCanvas.toBlob((blob) => {
