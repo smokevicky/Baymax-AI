@@ -4,7 +4,7 @@ import hashlib
 import sqlite3
 from typing import Tuple
 
-DB_PATH = "users.db"
+DB_PATH = "/tmp/users.db" if os.environ.get("VERCEL") else "users.db"
 
 def init_db():
     """
