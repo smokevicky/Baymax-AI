@@ -86,3 +86,7 @@ The new SVG avatars were verified using a browser automation script at `http://l
 - **Responsive checks**: The avatars adjust from `36px` to `30px` on mobile layouts.
 
 ![Chat Consultation Avatars](C:\Users\UMESH KAR\.gemini\antigravity-ide\brain\ca87dcb1-e9b6-4fb0-bf8f-5da9ddc80ce2\chat_with_avatars_1783562073831.png)
+
+## Deploying to Render
+1. **Source Code Pushed**: Staged all local updates (ignoring `users.db` and temporary files) and pushed to GitHub repository branch: `main` on `user-origin` (`https://github.com/jenadivyansh945-ai/baymax-ai.git`).
+2. **Database & File Upload Handlers**: Since Render allows a writable ephemeral disk, SQLite databases (`users.db`) and temporary file upload folders (`temp_uploads/`) will compile and execute directly without filesystem errors.
