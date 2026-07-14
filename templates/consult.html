@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baymax AI - Your Personal Healthcare Companion</title>
+    <title>Zenvi AI - Your Personal Healthcare Companion</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --accent-color: #0c0c0d;
-            --baymax-red: #ff3b30;
+            --baymax-red: #d32f2f;
             --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
             --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
             --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
@@ -1050,6 +1050,72 @@
                 border-radius: 16px;
             }
         }
+        /* Dropdown Style */
+        .history-dropdown {
+            position: relative;
+        }
+        .history-dropdown-btn {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            font-family: inherit;
+            backdrop-filter: blur(8px);
+        }
+        .history-dropdown-btn:hover {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .logout-nav-btn:hover {
+            border-color: rgba(211, 47, 47, 0.2) !important;
+            color: #d32f2f !important;
+            background: rgba(211, 47, 47, 0.04) !important;
+        }
+        .history-dropdown-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        .history-dropdown-btn .chevron-icon {
+            transition: transform 0.2s ease;
+        }
+        .history-dropdown.open .history-dropdown-btn .chevron-icon {
+            transform: rotate(180deg);
+        }
+        .history-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1000;
+            animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .history-dropdown.open .history-dropdown-menu {
+            display: flex !important;
+        }
     </style>
 </head>
 <body>
@@ -1057,7 +1123,7 @@
     <header>
         <div class="logo" onclick="window.location.href='/'">
             <div class="logo-dot"></div>
-            Baymax AI
+            Zenvi AI
         </div>
         <div class="header-controls">
             <select id="langSelect" class="select-voice" title="Speech Language" style="max-width: 140px;">
@@ -1066,6 +1132,37 @@
             </select>
             <select id="voiceSelect" class="select-voice" title="Choose Voice"></select>
             <button class="btn-reset" onclick="resetConversation()">Clear Session</button>
+
+            <!-- Profile Dropdown -->
+            <div class="history-dropdown" id="profileDropdown">
+                <button class="history-dropdown-btn" id="profileBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Profile</span>
+                    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="history-dropdown-menu" id="profileMenu" style="width: 320px; padding: 20px; box-sizing: border-box; display: none; flex-direction: column; gap: 14px;">
+                    <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; border-bottom: 1px solid rgba(0, 0, 0, 0.05); padding-bottom: 8px; text-align: left;">Your Profile</div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Username</span>
+                        <span id="profileUsername" style="font-size: 0.95rem; font-weight: 600; color: #0f172a;"></span>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Email Address</span>
+                        <span id="profileEmail" style="font-size: 0.95rem; font-weight: 600; color: #0f172a;"></span>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 4px;">
+                        <button id="profileSignoutBtn" onclick="window.location.href='/logout'" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 10px; font-size: 0.85rem; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Sign Out</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Logout Button -->
+            <button class="history-dropdown-btn logout-nav-btn" onclick="window.location.href='/logout'" title="Logout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Logout</span>
+            </button>
         </div>
     </header>
 
@@ -1240,8 +1337,8 @@
                             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
                                 <defs>
                                     <linearGradient id="headerAvatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#ff4b4b" />
-                                        <stop offset="100%" stop-color="#ff3b30" />
+                                        <stop offset="0%" stop-color="#ff453a" />
+                                        <stop offset="100%" stop-color="#d32f2f" />
                                     </linearGradient>
                                     <linearGradient id="headerBaymaxBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                                         <stop offset="0%" stop-color="#ffffff" />
@@ -1255,7 +1352,7 @@
                                 <line x1="40" y1="50" x2="60" y2="50" stroke="#0c0d0e" stroke-width="1.2" />
                             </svg>
                         </div>
-                        <div class="chat-title">Consultation Log</div>
+                        <div class="chat-title">Zenvi Log</div>
                     </div>
                     <button type="button" class="btn-body-map-toggle" onclick="toggleBodyMap()" title="Toggle Anatomical Body Map">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1366,7 +1463,7 @@
         let recognition = null;
         const voiceSelect = document.getElementById('voiceSelect');
         const edgeVoices = [
-            { name: "en-US-AndrewNeural", label: "Andrew (Male, US) - Baymax Style" },
+            { name: "en-US-AndrewNeural", label: "Andrew (Male, US) - Zenvi Style" },
             { name: "en-US-GuyNeural", label: "Guy (Male, US) - Soft & Calm" },
             { name: "en-US-BrianNeural", label: "Brian (Male, UK) - Deep Male" },
             { name: "en-US-JennyNeural", label: "Jenny (Female, US) - Google US English Style" },
@@ -1412,7 +1509,7 @@
                         recognition.lang = "hi-IN";
                     }
                 }
-                speak("नमस्ते। मैं बेमैक्स हूँ, आपका व्यक्तिगत स्वास्थ्य सहायक।");
+                speak("नमस्ते। मैं ज़ेनवी हूँ, आपका व्यक्तिगत स्वास्थ्य सहायक।");
             } else {
                 if (langSelect) {
                     langSelect.value = "en-US";
@@ -1421,7 +1518,7 @@
                         recognition.lang = "en-US";
                     }
                 }
-                speak("Hello. I am Baymax, your personal healthcare companion.");
+                speak("Hello. I am Zenvi AI, your personal healthcare companion.");
             }
         });
 
@@ -1621,9 +1718,9 @@
             }
 
             const currentVoice = voiceSelect.value;
-            let greetingText = "Hello, I'm Baymax. Your personal healthcare companion. To better assist you, may I know your name?";
+            let greetingText = "Hello, I'm Zenvi AI. Your personal healthcare companion. To better assist you, may I know your name?";
             if (currentVoice.startsWith("hi-IN")) {
-                greetingText = "नमस्ते, मैं बेमैक्स हूँ। आपका व्यक्तिगत स्वास्थ्य सहायक। आपकी बेहतर सहायता के लिए, क्या मैं आपका नाम जान सकता हूँ?";
+                greetingText = "नमस्ते, मैं ज़ेनवी हूँ। आपका व्यक्तिगत स्वास्थ्य सहायक। आपकी बेहतर सहायता के लिए, क्या मैं आपका नाम जान सकता हूँ?";
             }
             appendMessage('baymax', `<p>${greetingText}</p>`);
             
@@ -1974,7 +2071,7 @@
                 sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
                 isResumedSession = false;
                 
-                const clearText = "Hello! I am Baymax, your personal healthcare companion. To better assist you, may I know your name?";
+                const clearText = "Hello! I am Zenvi AI, your personal healthcare companion. To better assist you, may I know your name?";
                 appendMessage('baymax', `<p>${clearText}</p>`);
                 speak(clearText, () => {
                     if (isAwake) {
@@ -2132,19 +2229,19 @@
                     window.speechSynthesis.speak(triggerGreeting);
                 }
                 
-                let ackText = "Hello, I'm Baymax. How can I help you manage your health today?";
+                let ackText = "Hello, I'm Zenvi AI. How can I help you manage your health today?";
                 let autoQuery = null;
                 
                 if (topic === 'Doctor') {
-                    ackText = "Hello, I'm Baymax. Let's start your clinical health check.";
+                    ackText = "Hello, I'm Zenvi AI. Let's start your clinical health check.";
                     autoQuery = "Hello Doctor, I would like a personalized clinical health check.";
                 } else if (topic === 'Labs') {
-                    ackText = "Hello, I'm Baymax. Let's interpret your lab test results. Please upload your PDF files or lab test reports using the plus button below.";
+                    ackText = "Hello, I'm Zenvi AI. Let's interpret your lab test results. Please upload your PDF files or lab test reports using the plus button below.";
                 } else if (topic === 'Symptoms') {
-                    ackText = "Hello, I'm Baymax. Let's check your symptoms.";
+                    ackText = "Hello, I'm Zenvi AI. Let's check your symptoms.";
                     autoQuery = "I would like to check my symptoms. I have been feeling unwell.";
                 } else if (topic === 'general') {
-                    ackText = "Hello, I'm Baymax. Let's start your clinical consultation.";
+                    ackText = "Hello, I'm Zenvi AI. Let's start your clinical consultation.";
                 }
                 
                 appendMessage('baymax', `<p>${ackText}</p>`);
@@ -2232,7 +2329,7 @@
                         
                         const form = document.getElementById('inputForm');
                         if (form) {
-                            // Trigger a form submission to consult Baymax instantly
+                            // Trigger a form submission to consult Zenvi instantly
                             const submitBtn = form.querySelector('button[type="submit"]');
                             if (submitBtn) {
                                 submitBtn.click();
@@ -2438,6 +2535,46 @@
                 speak("I encountered an error analyzing your photo. Please try again.", () => {
                     if (isAwake) startListening();
                 });
+            }
+        });
+        // Profile Dropdown Toggle & Linking
+        document.addEventListener('DOMContentLoaded', () => {
+            const profileDropdown = document.getElementById('profileDropdown');
+            const profileBtn = document.getElementById('profileBtn');
+            const profileMenu = document.getElementById('profileMenu');
+            const profileEmail = document.getElementById('profileEmail');
+
+            if (profileBtn && profileDropdown && profileMenu) {
+                fetchProfile();
+
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('open');
+                    if (profileDropdown.classList.contains('open')) {
+                        fetchProfile();
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.remove('open');
+                    }
+                });
+
+                async function fetchProfile() {
+                    try {
+                        const response = await fetch('/api/profile');
+                        if (response.ok) {
+                            const data = await response.json();
+                            document.getElementById('profileUsername').textContent = data.username;
+                            if (profileEmail) {
+                                profileEmail.textContent = data.email || 'None';
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error fetching profile:', e);
+                    }
+                }
             }
         });
     </script>

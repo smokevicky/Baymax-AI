@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenvi AI - Health Monitor & Vitals Tracker</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #faf9f6;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(0, 0, 0, 0.08);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --baymax-red: #d32f2f;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #faf9f6;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Header Navigation */
+        .landing-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(250, 249, 246, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .header-logo-svg {
+            width: 45px;
+            height: auto;
+        }
+        .header-logo-svg circle, .header-logo-svg line {
+            stroke: #0f172a;
+            fill: #0f172a;
+        }
+        .header-brand {
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #0f172a;
+        }
+        .header-tagline {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-style: italic;
+            opacity: 0.85;
+            letter-spacing: 0.3px;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .btn-back, .lang-select {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 10px 20px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            font-family: inherit;
+            outline: none;
+        }
+        .btn-back:hover, .lang-select:hover {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.15);
+            color: #0f172a;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Main Workspace Container */
+        .dashboard-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 32px;
+            flex-grow: 1;
+        }
+
+        .left-column, .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Glassmorphic Cards */
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding-bottom: 12px;
+        }
+        .card-title svg {
+            color: var(--baymax-red);
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Vitals Input Form styling */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.8);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--baymax-red);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.08);
+        }
+        
+        /* Symptoms checkbox checklist */
+        .symptoms-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .symptom-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .symptom-tag input {
+            display: none;
+        }
+        .symptom-tag.selected {
+            background: rgba(211, 47, 47, 0.06);
+            border-color: rgba(211, 47, 47, 0.2);
+            color: var(--baymax-red);
+            font-weight: 600;
+        }
+        .symptom-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            transition: all 0.2s ease;
+        }
+        .symptom-tag.selected .symptom-dot {
+            background: var(--baymax-red);
+            transform: scale(1.2);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        .btn-submit:hover {
+            background: #1e293b;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Vitals Log List */
+        .logs-container {
+            max-height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 4px;
+        }
+        .logs-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .logs-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .logs-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 99px;
+        }
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            padding: 12px 16px;
+            border-radius: 14px;
+        }
+        .log-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .log-date {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+        .log-values {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .log-symptoms {
+            font-size: 0.75rem;
+            color: var(--baymax-red);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .btn-delete-log {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-delete-log:hover {
+            color: var(--baymax-red);
+            background: rgba(211, 47, 47, 0.05);
+        }
+
+        /* AI Clinical Scan Panel */
+        .scan-action-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .btn-scan {
+            background: var(--baymax-red);
+            color: white;
+            border: none;
+            padding: 16px 36px;
+            border-radius: 9999px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 14px rgba(211, 47, 47, 0.3);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-scan:hover {
+            background: #b71c1c;
+            transform: scale(1.03) translateY(-1px);
+            box-shadow: 0 6px 20px rgba(211, 47, 47, 0.4);
+        }
+        .btn-scan svg {
+            width: 20px;
+            height: 20px;
+            animation: pulse-ring 2s infinite alternate;
+        }
+        @keyframes pulse-ring {
+            from { transform: scale(0.9); }
+            to { transform: scale(1.1); }
+        }
+
+        /* Clinical Report details styling */
+        .report-wrapper {
+            margin-top: 24px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        .report-header-title {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+        .report-audio-btn {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0,0,0,0.06);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .report-audio-btn:hover {
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+        .report-audio-btn.playing {
+            background: var(--baymax-red);
+            color: white;
+            border-color: var(--baymax-red);
+            animation: audio-playing-pulse 1.5s infinite alternate;
+        }
+        @keyframes audio-playing-pulse {
+            from { box-shadow: 0 0 5px rgba(211, 47, 47, 0.3); }
+            to { box-shadow: 0 0 15px rgba(211, 47, 47, 0.7); }
+        }
+
+        .report-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+        .report-content h2, .report-content h3 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: var(--baymax-red);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .report-content p {
+            margin-bottom: 12px;
+        }
+        .report-content ul, .report-content ol {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+        .report-content li {
+            margin-bottom: 6px;
+        }
+        .report-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.85rem;
+            background: rgba(255,255,255,0.7);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .report-content th, .report-content td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .report-content th {
+            background: rgba(0,0,0,0.02);
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+        .report-content tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Scanner Glowing Animation */
+        .scanner-panel {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            gap: 20px;
+            text-align: center;
+        }
+        .scanner-spinner {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid rgba(211, 47, 47, 0.08);
+            border-top-color: var(--baymax-red);
+            animation: spin 1s infinite linear, scanner-pulse 1.5s infinite ease-in-out alternate;
+            position: relative;
+        }
+        @keyframes scanner-pulse {
+            from { box-shadow: 0 0 10px rgba(211, 47, 47, 0.1); }
+            to { box-shadow: 0 0 35px rgba(211, 47, 47, 0.7); }
+        }
+        .scanner-text {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            animation: scan-text-blink 1.5s infinite alternate;
+        }
+        @keyframes scan-text-blink {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+
+        /* Empty states */
+        .empty-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 500;
+            gap: 12px;
+        }
+        .empty-placeholder svg {
+            width: 48px;
+            height: 48px;
+            stroke-width: 1.5;
+            color: #cbd5e1;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                padding: 24px;
+            }
+        }
+        @media (max-width: 768px) {
+            .landing-header {
+                padding: 12px 20px;
+            }
+            .header-tagline {
+                display: none;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        /* Dropdown Style */
+        .history-dropdown {
+            position: relative;
+        }
+        .history-dropdown-btn {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 10px 20px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            font-family: inherit;
+        }
+        .history-dropdown-btn:hover {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.15);
+            color: #0f172a;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .logout-nav-btn:hover {
+            border-color: rgba(211, 47, 47, 0.2) !important;
+            color: #d32f2f !important;
+            background: rgba(211, 47, 47, 0.04) !important;
+        }
+        .history-dropdown-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        .history-dropdown-btn .chevron-icon {
+            transition: transform 0.2s ease;
+        }
+        .history-dropdown.open .history-dropdown-btn .chevron-icon {
+            transform: rotate(180deg);
+        }
+        .history-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1000;
+            animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .history-dropdown.open .history-dropdown-menu {
+            display: flex !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="landing-header">
+        <div class="header-logo" onclick="window.location.href='/'">
+            <svg class="header-logo-svg" viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="25" cy="20" r="7" />
+                <circle cx="75" cy="20" r="7" />
+                <line x1="25" y1="20" x2="75" y2="20" stroke-width="2.5" />
+            </svg>
+            <span class="header-brand">ZENVI AI</span>
+        </div>
+        <span class="header-tagline">Empowering Community Care. Elevating Global Health.</span>
+        <div class="header-actions">
+            <select class="lang-select" id="langSelect" title="Select Analysis Language">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+            </select>
+            <button class="btn-back" onclick="window.location.href='/'">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                <span>Back to Home</span>
+            </button>
+
+            <!-- Profile Dropdown -->
+            <div class="history-dropdown" id="profileDropdown">
+                <button class="history-dropdown-btn" id="profileBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Profile</span>
+                    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="history-dropdown-menu" id="profileMenu" style="width: 320px; padding: 20px; box-sizing: border-box; display: none; flex-direction: column; gap: 14px;">
+                    <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; border-bottom: 1px solid rgba(0, 0, 0, 0.05); padding-bottom: 8px; text-align: left;">Your Profile</div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Username</span>
+                        <span id="profileUsername" style="font-size: 0.95rem; font-weight: 600; color: #0f172a;"></span>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Email Address</span>
+                        <span id="profileEmail" style="font-size: 0.95rem; font-weight: 600; color: #0f172a;"></span>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 4px;">
+                        <button id="profileSignoutBtn" onclick="window.location.href='/logout'" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 10px; font-size: 0.85rem; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Sign Out</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Logout Button -->
+            <button class="history-dropdown-btn logout-nav-btn" onclick="window.location.href='/logout'" title="Logout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Logout</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Dashboard Main -->
+    <main class="dashboard-container">
+        
+        <!-- Left Side Column: Inputs and Records -->
+        <div class="left-column">
+            
+            <!-- Vitals Entry Form -->
+            <div class="glass-card">
+                <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    <span>Log Daily Vitals</span>
+                </div>
+                <form id="vitalsForm" onsubmit="saveVitalEntry(event);">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="vitalDate">Date</label>
+                            <input type="date" id="vitalDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vitalHeartRate">Heart Rate (bpm)</label>
+                            <input type="number" id="vitalHeartRate" min="30" max="250" placeholder="e.g. 72">
+                        </div>
+                        <div class="form-group">
+                            <label for="vitalBP">Blood Pressure</label>
+                            <input type="text" id="vitalBP" placeholder="e.g. 120/80" pattern="^\d{2,3}\/\d{2,3}$" title="Format: Sys/Dia (e.g. 120/80)">
+                        </div>
+                        <div class="form-group">
+                            <label for="vitalSugar">Blood Sugar (mg/dL)</label>
+                            <input type="number" id="vitalSugar" min="10" max="1000" placeholder="e.g. 95">
+                        </div>
+                        <div class="form-group">
+                            <label for="vitalTemp">Temperature (°F)</label>
+                            <input type="number" id="vitalTemp" step="0.1" min="90" max="115" placeholder="e.g. 98.6">
+                        </div>
+                        <div class="form-group">
+                            <label for="vitalWeight">Weight (kg)</label>
+                            <input type="number" id="vitalWeight" step="0.1" min="1" max="500" placeholder="e.g. 70">
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label style="margin-bottom: 8px;">Active Symptoms</label>
+                            <div class="symptoms-selector">
+                                <div class="symptom-tag" onclick="toggleSymptomTag(this);">
+                                    <div class="symptom-dot"></div>
+                                    <span>Headache</span>
+                                    <input type="checkbox" value="Headache">
+                                </div>
+                                <div class="symptom-tag" onclick="toggleSymptomTag(this);">
+                                    <div class="symptom-dot"></div>
+                                    <span>Fatigue</span>
+                                    <input type="checkbox" value="Fatigue">
+                                </div>
+                                <div class="symptom-tag" onclick="toggleSymptomTag(this);">
+                                    <div class="symptom-dot"></div>
+                                    <span>Cough</span>
+                                    <input type="checkbox" value="Cough">
+                                </div>
+                                <div class="symptom-tag" onclick="toggleSymptomTag(this);">
+                                    <div class="symptom-dot"></div>
+                                    <span>Fever</span>
+                                    <input type="checkbox" value="Fever">
+                                </div>
+                                <div class="symptom-tag" onclick="toggleSymptomTag(this);">
+                                    <div class="symptom-dot"></div>
+                                    <span>Nausea</span>
+                                    <input type="checkbox" value="Nausea">
+                                </div>
+                                <div class="symptom-tag" onclick="toggleSymptomTag(this);">
+                                    <div class="symptom-dot"></div>
+                                    <span>Muscle Pain</span>
+                                    <input type="checkbox" value="Muscle Pain">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="vitalNotes">Daily Health Notes</label>
+                            <textarea id="vitalNotes" rows="2" placeholder="Describe how you are feeling today..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Record Metrics</button>
+                </form>
+            </div>
+
+            <!-- Vitals Log List Card -->
+            <div class="glass-card">
+                <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M3 20v-8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v8M3 4h18M3 8h18"/></svg>
+                    <span>Vitals History Log</span>
+                </div>
+                <div id="logsList" class="logs-container">
+                    <!-- Dynamic logs content -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Side Column: Trends Graph and AI scan -->
+        <div class="right-column">
+            
+            <!-- Charts Visualization -->
+            <div class="glass-card">
+                <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    <span>Metrics Trend History</span>
+                </div>
+                <div style="position: relative; width:100%; height: 300px;" id="chartWrapper">
+                    <canvas id="vitalsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Baymax AI Diagnostic Scanner -->
+            <div class="glass-card">
+                <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                    <span>Zenvi Clinical Vital Scan</span>
+                </div>
+                
+                <div class="scan-action-container">
+                    <button class="btn-scan" id="scanBtn" onclick="runVitalsScan();">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        <span>Start Clinical Scan</span>
+                    </button>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 500px; line-height: 1.4;">
+                        Select your preferred analysis language in the header. Zenvi will evaluate your logs using the clinical database and read your assessment out loud.
+                    </p>
+                </div>
+
+                <!-- Scanner loading animation -->
+                <div class="scanner-panel" id="scannerPanel">
+                    <div class="scanner-spinner"></div>
+                    <div class="scanner-text" id="scannerStatus">Initiating biometric scan...</div>
+                </div>
+
+                <!-- Generated Report output -->
+                <div class="report-wrapper" id="reportWrapper">
+                    <div class="report-header">
+                        <div class="report-header-title">Zenvi Diagnostic Report</div>
+                        <button class="report-audio-btn" id="audioBtn" onclick="toggleReportAudio();">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                            <span id="audioBtnText">Play Audio</span>
+                        </button>
+                    </div>
+                    <div class="report-content" id="reportContent">
+                        <!-- Loaded markdown dynamic HTML -->
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        let vitalsHistory = [];
+        let chartInstance = null;
+        let activeAudio = null;
+        let audioPlayQueue = [];
+        let currentQueueIdx = 0;
+        let currentReportSpeechText = "";
+
+        // Form Initialization & Page setup
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default date to today
+            document.getElementById('vitalDate').valueAsDate = new Date();
+            
+            // Load vitals from LocalStorage
+            loadVitalsData();
+            
+            // Render list and draw initial chart
+            renderLogsList();
+            updateChart();
+        });
+
+        function loadVitalsData() {
+            try {
+                const data = localStorage.getItem('baymax_vitals');
+                vitalsHistory = data ? JSON.parse(data) : [];
+                // Sort by date ascending for charts
+                vitalsHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+            } catch (e) {
+                console.error("Failed to load local storage logs: ", e);
+                vitalsHistory = [];
+            }
+        }
+
+        function saveVitalsData() {
+            try {
+                localStorage.setItem('baymax_vitals', JSON.stringify(vitalsHistory));
+            } catch (e) {
+                console.error("Failed to save local storage logs: ", e);
+            }
+        }
+
+        // Toggle tag selection
+        function toggleSymptomTag(element) {
+            const checkbox = element.querySelector('input');
+            checkbox.checked = !checkbox.checked;
+            element.classList.toggle('selected', checkbox.checked);
+        }
+
+        // Record a new vitals entry
+        function saveVitalEntry(e) {
+            e.preventDefault();
+            
+            const date = document.getElementById('vitalDate').value;
+            const heartRateVal = document.getElementById('vitalHeartRate').value;
+            const bpVal = document.getElementById('vitalBP').value;
+            const sugarVal = document.getElementById('vitalSugar').value;
+            const tempVal = document.getElementById('vitalTemp').value;
+            const weightVal = document.getElementById('vitalWeight').value;
+            const notesVal = document.getElementById('vitalNotes').value.trim();
+            
+            // Collect checked symptoms
+            const symptoms = [];
+            const checkboxes = document.querySelectorAll('.symptoms-selector input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    symptoms.push(cb.value);
+                }
+            });
+
+            // Input Validation - at least date and one metric is required
+            if (!date) return;
+            const hasMetric = heartRateVal || bpVal || sugarVal || tempVal || weightVal || notesVal || symptoms.length > 0;
+            if (!hasMetric) {
+                alert("Please input at least one health metric or log note before saving.");
+                return;
+            }
+
+            // Create new object
+            const entry = {
+                date: date,
+                heart_rate: heartRateVal ? parseFloat(heartRateVal) : null,
+                blood_pressure: bpVal ? bpVal.trim() : null,
+                blood_sugar: sugarVal ? parseFloat(sugarVal) : null,
+                temperature: tempVal ? parseFloat(tempVal) : null,
+                weight: weightVal ? parseFloat(weightVal) : null,
+                symptoms: symptoms,
+                notes: notesVal || null
+            };
+
+            // Remove existing duplicate date entries to prevent chart confusion
+            vitalsHistory = vitalsHistory.filter(item => item.date !== date);
+            
+            // Add & Sort vitals
+            vitalsHistory.push(entry);
+            vitalsHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // Save and reset interface
+            saveVitalsData();
+            renderLogsList();
+            updateChart();
+
+            // Clear inputs
+            document.getElementById('vitalHeartRate').value = '';
+            document.getElementById('vitalBP').value = '';
+            document.getElementById('vitalSugar').value = '';
+            document.getElementById('vitalTemp').value = '';
+            document.getElementById('vitalWeight').value = '';
+            document.getElementById('vitalNotes').value = '';
+            document.querySelectorAll('.symptom-tag').forEach(tag => {
+                tag.classList.remove('selected');
+                tag.querySelector('input').checked = false;
+            });
+            document.getElementById('vitalDate').valueAsDate = new Date();
+        }
+
+        // Delete a vital log
+        function deleteLogEntry(dateToDelete) {
+            if (confirm(`Do you want to delete the entry for ${dateToDelete}?`)) {
+                vitalsHistory = vitalsHistory.filter(item => item.date !== dateToDelete);
+                saveVitalsData();
+                renderLogsList();
+                updateChart();
+            }
+        }
+
+        // Render Vitals list in Left column
+        function renderLogsList() {
+            const container = document.getElementById('logsList');
+            container.innerHTML = '';
+            
+            if (vitalsHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        <p>No logged logs yet.<br>Record today's vitals above.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Render descending order for lists
+            const listData = [...vitalsHistory].reverse();
+            listData.forEach(entry => {
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                
+                const valParts = [];
+                if (entry.heart_rate) valParts.push(`HR: ${entry.heart_rate}`);
+                if (entry.blood_pressure) valParts.push(`BP: ${entry.blood_pressure}`);
+                if (entry.blood_sugar) valParts.push(`BS: ${entry.blood_sugar}`);
+                if (entry.temperature) valParts.push(`Temp: ${entry.temperature}°F`);
+                if (entry.weight) valParts.push(`Wt: ${entry.weight}kg`);
+
+                const symptomsText = entry.symptoms.length > 0 ? `Symptoms: ${entry.symptoms.join(', ')}` : '';
+                
+                item.innerHTML = `
+                    <div class="log-meta">
+                        <div class="log-date">${formatDate(entry.date)}</div>
+                        <div class="log-values">${valParts.join(' | ') || 'Notes only'}</div>
+                        ${symptomsText ? `<div class="log-symptoms">${symptomsText}</div>` : ''}
+                    </div>
+                    <button class="btn-delete-log" onclick="deleteLogEntry('${entry.date}');" title="Delete record">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Draw / Update Chart
+        function updateChart() {
+            const ctx = document.getElementById('vitalsChart').getContext('2d');
+            
+            // Clean/destroy existing chart
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            if (vitalsHistory.length === 0) {
+                // Return default empty state
+                document.getElementById('chartWrapper').style.opacity = '0.3';
+                return;
+            }
+            document.getElementById('chartWrapper').style.opacity = '1';
+
+            // Chart Labels (Dates)
+            const labels = vitalsHistory.map(entry => formatDateShort(entry.date));
+            
+            // Collect Metrics arrays
+            const heartRates = vitalsHistory.map(entry => entry.heart_rate);
+            const bloodSugars = vitalsHistory.map(entry => entry.blood_sugar);
+            
+            // BP split values (Systolic / Diastolic)
+            const bpSystolic = vitalsHistory.map(entry => {
+                if (!entry.blood_pressure) return null;
+                const parts = entry.blood_pressure.split('/');
+                return parts[0] ? parseFloat(parts[0]) : null;
+            });
+            const bpDiastolic = vitalsHistory.map(entry => {
+                if (!entry.blood_pressure) return null;
+                const parts = entry.blood_pressure.split('/');
+                return parts[1] ? parseFloat(parts[1]) : null;
+            });
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Heart Rate (bpm)',
+                            data: heartRates,
+                            borderColor: '#d32f2f',
+                            backgroundColor: 'rgba(211, 47, 47, 0.05)',
+                            borderWidth: 2.5,
+                            tension: 0.3,
+                            spanGaps: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Systolic BP (mmHg)',
+                            data: bpSystolic,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.2,
+                            spanGaps: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Diastolic BP (mmHg)',
+                            data: bpDiastolic,
+                            borderColor: '#93c5fd',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.2,
+                            spanGaps: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Blood Sugar (mg/dL)',
+                            data: bloodSugars,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                            borderWidth: 2.5,
+                            tension: 0.3,
+                            spanGaps: true,
+                            yAxisID: 'y-sugar'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'HR (bpm) / BP (mmHg)',
+                                font: { size: 10, weight: 'bold' }
+                            },
+                            suggestedMin: 50,
+                            suggestedMax: 150
+                        },
+                        'y-sugar': {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Sugar (mg/dL)',
+                                font: { size: 10, weight: 'bold' }
+                            },
+                            grid: {
+                                drawOnChartArea: false // Prevents overlapping grid lines
+                            },
+                            suggestedMin: 70,
+                            suggestedMax: 200
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                font: {
+                                    family: 'Plus Jakarta Sans',
+                                    size: 10,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Run Baymax Clinical Vitals scan
+        async function runVitalsScan() {
+            if (vitalsHistory.length === 0) {
+                alert("Please add at least one vital sign record before initiating the scan.");
+                return;
+            }
+
+            const scanBtn = document.getElementById('scanBtn');
+            const scannerPanel = document.getElementById('scannerPanel');
+            const reportWrapper = document.getElementById('reportWrapper');
+            const scannerStatus = document.getElementById('scannerStatus');
+
+            // Toggle UI states
+            scanBtn.style.display = 'none';
+            reportWrapper.style.display = 'none';
+            scannerPanel.style.display = 'flex';
+            stopReportAudio();
+
+            // Loading steps simulation
+            const steps = [
+                "Initiating biometric scan...",
+                "Retrieving local vital logs...",
+                "Analyzing heart rate and BP signals...",
+                "Cross-referencing symptoms with medical databases...",
+                "Generating personalized diagnosis..."
+            ];
+            
+            let stepIdx = 0;
+            const statusInterval = setInterval(() => {
+                if (stepIdx < steps.length) {
+                    scannerStatus.innerText = steps[stepIdx];
+                    stepIdx++;
+                }
+            }, 1000);
+
+            const selectedLanguage = document.getElementById('langSelect').value;
+
+            try {
+                const response = await fetch('/api/analyze-vitals', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        vitals: vitalsHistory,
+                        language: selectedLanguage
+                    })
+                });
+
+                clearInterval(statusInterval);
+
+                if (!response.ok) {
+                    throw new Error("Diagnosis failed or server error.");
+                }
+
+                const data = await response.json();
+                
+                // Show report
+                document.getElementById('reportContent').innerHTML = data.display_html;
+                currentReportSpeechText = data.tts_text;
+                
+                scannerPanel.style.display = 'none';
+                reportWrapper.style.display = 'block';
+                scanBtn.style.display = 'flex';
+
+                // Automatically speak report
+                playReportAudio(currentReportSpeechText);
+
+            } catch (err) {
+                clearInterval(statusInterval);
+                console.error("Clinical Vitals scan error: ", err);
+                alert("An error occurred during vitals analysis. Please verify your connection.");
+                scannerPanel.style.display = 'none';
+                scanBtn.style.display = 'flex';
+            }
+        }
+
+        // TTS voice synthesis engine
+        function playReportAudio(text) {
+            stopReportAudio();
+
+            if (!text) return;
+            
+            // Clean text and split into sentences
+            let cleanText = text.replace(/[*#`_\-]/g, '').trim();
+            let rawSentences = cleanText.split(/(?<=[.?!।॥])\s+/);
+            audioPlayQueue = rawSentences.map(s => s.trim()).filter(s => s.length > 0);
+            
+            if (audioPlayQueue.length === 0) return;
+
+            currentQueueIdx = 0;
+            const audioBtn = document.getElementById('audioBtn');
+            const audioBtnText = document.getElementById('audioBtnText');
+            
+            audioBtn.classList.add('playing');
+            audioBtnText.innerText = "Stop Audio";
+
+            playNextSentence();
+        }
+
+        async function playNextSentence() {
+            if (currentQueueIdx >= audioPlayQueue.length) {
+                // Finished
+                stopReportAudio();
+                return;
+            }
+
+            const sentence = audioPlayQueue[currentQueueIdx];
+            const voice = document.getElementById('langSelect').value === 'hi' ? 'hi-IN-MadhurNeural' : 'en-US-AndrewNeural';
+
+            try {
+                const response = await fetch(`/api/tts?text=${encodeURIComponent(sentence)}&voice=${encodeURIComponent(voice)}`);
+                if (!response.ok) {
+                    currentQueueIdx++;
+                    playNextSentence();
+                    return;
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                
+                activeAudio = new Audio(url);
+                activeAudio.onended = () => {
+                    URL.revokeObjectURL(url);
+                    currentQueueIdx++;
+                    playNextSentence();
+                };
+                
+                activeAudio.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    currentQueueIdx++;
+                    playNextSentence();
+                };
+
+                await activeAudio.play();
+
+            } catch (err) {
+                console.error("TTS fetch or play error: ", err);
+                currentQueueIdx++;
+                playNextSentence();
+            }
+        }
+
+        // Clean play and reset
+        function stopReportAudio() {
+            if (activeAudio) {
+                try {
+                    activeAudio.pause();
+                } catch(e) {}
+                activeAudio = null;
+            }
+            audioPlayQueue = [];
+            currentQueueIdx = 0;
+            
+            const audioBtn = document.getElementById('audioBtn');
+            const audioBtnText = document.getElementById('audioBtnText');
+            if (audioBtn && audioBtnText) {
+                audioBtn.classList.remove('playing');
+                audioBtnText.innerText = "Play Audio";
+            }
+        }
+
+        function toggleReportAudio() {
+            const audioBtn = document.getElementById('audioBtn');
+            if (audioBtn.classList.contains('playing')) {
+                stopReportAudio();
+            } else {
+                playReportAudio(currentReportSpeechText);
+            }
+        }
+
+        // Date formatting helpers
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function formatDateShort(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+        // Profile Dropdown Toggle & Linking
+        document.addEventListener('DOMContentLoaded', () => {
+            const profileDropdown = document.getElementById('profileDropdown');
+            const profileBtn = document.getElementById('profileBtn');
+            const profileMenu = document.getElementById('profileMenu');
+            const profileEmail = document.getElementById('profileEmail');
+
+            if (profileBtn && profileDropdown && profileMenu) {
+                fetchProfile();
+
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('open');
+                    if (profileDropdown.classList.contains('open')) {
+                        fetchProfile();
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.remove('open');
+                    }
+                });
+
+                async function fetchProfile() {
+                    try {
+                        const response = await fetch('/api/profile');
+                        if (response.ok) {
+                            const data = await response.json();
+                            document.getElementById('profileUsername').textContent = data.username;
+                            if (profileEmail) {
+                                profileEmail.textContent = data.email || 'None';
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error fetching profile:', e);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baymax AI - Your Personal Healthcare Companion</title>
+    <title>Zenvi AI - Your Personal Healthcare Companion</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
             --text-primary: #0f172a;
             --text-secondary: #475569;
             --accent-color: #f1f5f9;
-            --baymax-red: #d32f2f; /* Deep crimson red for high-contrast light theme */
+            --zenvi-red: #d32f2f; /* Deep crimson red for high-contrast light theme */
             --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
             --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
             --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.12);
@@ -189,7 +189,7 @@
             height: 80px;
             border-radius: 20px;
             background: rgba(211, 47, 47, 0.08);
-            color: var(--baymax-red);
+            color: var(--zenvi-red);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -216,7 +216,7 @@
             font-weight: 500;
         }
         .capability-action-btn {
-            background: var(--baymax-red);
+            background: var(--zenvi-red);
             color: #ffffff;
             border: none;
             padding: 15px 36px;
@@ -270,7 +270,7 @@
             background: #ffffff;
             transform: translateY(-50%) scale(1.05);
             box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-            color: var(--baymax-red);
+            color: var(--zenvi-red);
         }
         .capabilities-nav-btn.left {
             left: 20px;
@@ -339,8 +339,8 @@
             transform: translateX(4px);
         }
 
-        /* Floating Baymax widget */
-        .floating-baymax-widget {
+        /* Floating Zenvi widget */
+        .floating-zenvi-widget {
             position: fixed;
             bottom: 30px;
             right: 40px;
@@ -352,17 +352,17 @@
             transition: all 0.3s ease;
             filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
         }
-        .baymax-body-container {
+        .zenvi-body-container {
             width: 110px;
             height: 155px;
             position: relative;
             transition: all 0.3s ease;
         }
-        .floating-baymax-widget:hover .baymax-body-container {
+        .floating-zenvi-widget:hover .zenvi-body-container {
             transform: scale(1.1) translateY(-6px);
         }
         /* Head */
-        .baymax-head {
+        .zenvi-head {
             width: 32px;
             height: 22px;
             background: #ffffff;
@@ -378,20 +378,20 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             box-sizing: border-box;
         }
-        .baymax-head-eye {
+        .zenvi-head-eye {
             width: 4px;
             height: 4px;
             background: #000000;
             border-radius: 50%;
             animation: blink-anim 4s infinite;
         }
-        .baymax-head-line {
+        .zenvi-head-line {
             width: 12px;
             height: 0.8px;
             background: #000000;
         }
         /* Torso */
-        .baymax-torso {
+        .zenvi-torso {
             width: 70px;
             height: 86px;
             background: #ffffff;
@@ -404,7 +404,7 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
             box-sizing: border-box;
         }
-        .baymax-heart-badge {
+        .zenvi-heart-badge {
             width: 8px;
             height: 8px;
             background: #e5e7eb;
@@ -415,7 +415,7 @@
             left: 15px;
         }
         /* Arms */
-        .baymax-arm {
+        .zenvi-arm {
             width: 20px;
             height: 65px;
             background: #ffffff;
@@ -429,22 +429,22 @@
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-sizing: border-box;
         }
-        .baymax-arm.left {
+        .zenvi-arm.left {
             left: 5px;
             transform: rotate(8deg);
         }
-        .baymax-arm.right {
+        .zenvi-arm.right {
             right: 5px;
             transform: rotate(-8deg);
         }
-        .floating-baymax-widget:hover .baymax-arm.left {
+        .floating-zenvi-widget:hover .zenvi-arm.left {
             transform: rotate(25deg);
         }
-        .floating-baymax-widget:hover .baymax-arm.right {
+        .floating-zenvi-widget:hover .zenvi-arm.right {
             transform: rotate(-25deg);
         }
         /* Legs */
-        .baymax-leg {
+        .zenvi-leg {
             width: 22px;
             height: 44px;
             background: #ffffff;
@@ -456,10 +456,10 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.03);
             box-sizing: border-box;
         }
-        .baymax-leg.left {
+        .zenvi-leg.left {
             left: 28px;
         }
-        .baymax-leg.right {
+        .zenvi-leg.right {
             right: 28px;
         }
         .floating-bubble {
@@ -626,6 +626,24 @@
             letter-spacing: 2px;
             color: #0f172a;
         }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header-tagline {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-style: italic;
+            opacity: 0.85;
+            letter-spacing: 0.3px;
+        }
+        @media (max-width: 800px) {
+            .header-tagline {
+                display: none;
+            }
+        }
         
         /* Dropdown Style */
         .history-dropdown {
@@ -652,6 +670,11 @@
             border-color: rgba(0, 0, 0, 0.15);
             color: #0f172a;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .logout-nav-btn:hover {
+            border-color: rgba(211, 47, 47, 0.2) !important;
+            color: var(--zenvi-red) !important;
+            background: rgba(211, 47, 47, 0.04) !important;
         }
         .history-dropdown-btn svg {
             width: 16px;
@@ -685,7 +708,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .history-dropdown.open .history-dropdown-menu {
-            display: flex;
+            display: flex !important;
         }
         .history-menu-header {
             padding: 14px 16px;
@@ -768,7 +791,7 @@
             flex-shrink: 0;
         }
         .history-item-delete-btn:hover {
-            color: var(--baymax-red);
+            color: var(--zenvi-red);
             background: rgba(211, 47, 47, 0.08);
         }
         .history-item-delete-btn svg {
@@ -804,9 +827,10 @@
                 <circle cx="75" cy="20" r="7" />
                 <line x1="25" y1="20" x2="75" y2="20" stroke-width="2.5" />
             </svg>
-            <span class="header-brand">BAYMAX AI</span>
+            <span class="header-brand">ZENVI AI</span>
         </div>
         <div class="header-actions">
+            <span class="header-tagline">Empowering Community Care. Elevating Global Health.</span>
             <div class="history-dropdown" id="historyDropdown">
                 <button class="history-dropdown-btn" id="historyBtn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -820,6 +844,37 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Profile Dropdown -->
+            <div class="history-dropdown" id="profileDropdown">
+                <button class="history-dropdown-btn" id="profileBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Profile</span>
+                    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="history-dropdown-menu" id="profileMenu" style="width: 320px; padding: 20px; box-sizing: border-box; display: none; flex-direction: column; gap: 14px;">
+                    <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; border-bottom: 1px solid rgba(0, 0, 0, 0.05); padding-bottom: 8px; text-align: left;">Your Profile</div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Username</span>
+                        <span id="profileUsername" style="font-size: 0.95rem; font-weight: 600; color: #0f172a;">{{ username }}</span>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Email Address</span>
+                        <span id="profileEmail" style="font-size: 0.95rem; font-weight: 600; color: #0f172a;"></span>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 4px;">
+                        <button id="profileSignoutBtn" onclick="window.location.href='/logout'" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 10px; font-size: 0.85rem; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Sign Out</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Logout Button -->
+            <button class="history-dropdown-btn logout-nav-btn" onclick="window.location.href='/logout'" title="Logout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Logout</span>
+            </button>
         </div>
     </header>
 
@@ -837,7 +892,7 @@
                     <line x1="25" y1="20" x2="75" y2="20" stroke-width="2.5" />
                 </svg>
             </div>
-            <h1 class="hero-title">BAYMAX AI</h1>
+            <h1 class="hero-title">ZENVI AI</h1>
             <p class="hero-subtitle">Your Intelligent, Compassionate Healthcare Companion</p>
         </div>
 
@@ -909,6 +964,25 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Card 5: Health Monitor & Vitals Tracker -->
+                    <div class="capability-card">
+                        <div class="capability-card-inner" onclick="window.location.href='/monitor';">
+                            <div class="capability-icon-wrapper">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 3v18h18"/>
+                                    <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+                                    <circle cx="12" cy="5" r="2"/>
+                                </svg>
+                            </div>
+                            <h2 class="capability-title">Health Monitor</h2>
+                            <p class="capability-desc">Log vitals like heart rate, blood pressure, blood sugar, and body temperature. Track health trends with interactive charts and get clinical recommendations from Zenvi.</p>
+                            <button class="capability-action-btn">
+                                <span>Open Health Monitor</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -918,6 +992,7 @@
                 <div class="capabilities-indicator" onclick="goToSlide(1);"></div>
                 <div class="capabilities-indicator" onclick="goToSlide(2);"></div>
                 <div class="capabilities-indicator" onclick="goToSlide(3);"></div>
+                <div class="capabilities-indicator" onclick="goToSlide(4);"></div>
             </div>
         </div>
 
@@ -928,27 +1003,27 @@
         </div>
     </div>
 
-    <!-- Floating Baymax Full Body Consultation Trigger -->
-    <div class="floating-baymax-widget" id="floatingWidget" onclick="triggerQuickConsult('general')">
+    <!-- Floating Zenvi Full Body Consultation Trigger -->
+    <div class="floating-zenvi-widget" id="floatingWidget" onclick="triggerQuickConsult('general')">
         <div class="floating-bubble" style="bottom: 165px;">Not feeling well? Consult with me here!</div>
-        <div class="baymax-body-container">
+        <div class="zenvi-body-container">
             <!-- Left Arm -->
-            <div class="baymax-arm left"></div>
+            <div class="zenvi-arm left"></div>
             <!-- Right Arm -->
-            <div class="baymax-arm right"></div>
+            <div class="zenvi-arm right"></div>
             <!-- Left Leg -->
-            <div class="baymax-leg left"></div>
+            <div class="zenvi-leg left"></div>
             <!-- Right Leg -->
-            <div class="baymax-leg right"></div>
+            <div class="zenvi-leg right"></div>
             <!-- Torso -->
-            <div class="baymax-torso">
-                <div class="baymax-heart-badge"></div>
+            <div class="zenvi-torso">
+                <div class="zenvi-heart-badge"></div>
             </div>
             <!-- Head -->
-            <div class="baymax-head">
-                <div class="baymax-head-eye"></div>
-                <div class="baymax-head-line"></div>
-                <div class="baymax-head-eye"></div>
+            <div class="zenvi-head">
+                <div class="zenvi-head-eye"></div>
+                <div class="zenvi-head-line"></div>
+                <div class="zenvi-head-eye"></div>
             </div>
         </div>
     </div>
@@ -956,7 +1031,7 @@
     <!-- Script Navigation Logic -->
     <script>
         let currentSlide = 0;
-        const totalSlides = 4;
+        const totalSlides = 5;
         let slideInterval = null;
 
         function goToSlide(index) {
@@ -1010,28 +1085,66 @@
             const historyMenu = document.getElementById('historyMenu');
             const historyItems = document.getElementById('historyItems');
 
-            if (!historyBtn || !historyDropdown || !historyItems) return;
+            const profileDropdown = document.getElementById('profileDropdown');
+            const profileBtn = document.getElementById('profileBtn');
+            const profileMenu = document.getElementById('profileMenu');
+            const profileEmail = document.getElementById('profileEmail');
 
-            // Toggle dropdown
-            historyBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                historyDropdown.classList.toggle('open');
-                if (historyDropdown.classList.contains('open')) {
-                    renderHistory();
+            // Toggle history dropdown
+            if (historyBtn && historyDropdown && historyItems) {
+                historyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    historyDropdown.classList.toggle('open');
+                    if (historyDropdown.classList.contains('open')) {
+                        if (profileDropdown) profileDropdown.classList.remove('open');
+                        renderHistory();
+                    }
+                });
+            }
+
+            // Toggle profile dropdown
+            if (profileBtn && profileDropdown && profileMenu) {
+                fetchProfile();
+
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('open');
+                    if (profileDropdown.classList.contains('open')) {
+                        if (historyDropdown) historyDropdown.classList.remove('open');
+                        fetchProfile();
+                    }
+                });
+
+                async function fetchProfile() {
+                    try {
+                        const response = await fetch('/api/profile');
+                        if (response.ok) {
+                            const data = await response.json();
+                            document.getElementById('profileUsername').textContent = data.username;
+                            if (profileEmail) {
+                                profileEmail.textContent = data.email || 'None';
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error fetching profile:', e);
+                    }
                 }
-            });
+            }
 
-            // Close when clicking outside
+            // Close dropdowns when clicking outside
             document.addEventListener('click', (e) => {
-                if (!historyDropdown.contains(e.target)) {
+                if (historyDropdown && !historyDropdown.contains(e.target)) {
                     historyDropdown.classList.remove('open');
+                }
+                if (profileDropdown && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.remove('open');
                 }
             });
 
             function renderHistory() {
                 historyItems.innerHTML = '';
                 try {
-                    const sessions = JSON.parse(localStorage.getItem('baymax_chat_sessions') || '{}');
+                    const sessions = JSON.parse(localStorage.getItem('zenvi_chat_sessions') || '{}');
                     
                     // Filter and sort sessions
                     const validSessions = Object.values(sessions)
@@ -1085,10 +1198,10 @@
 
             function deleteSession(id) {
                 try {
-                    let sessions = JSON.parse(localStorage.getItem('baymax_chat_sessions') || '{}');
+                    let sessions = JSON.parse(localStorage.getItem('zenvi_chat_sessions') || '{}');
                     if (sessions[id]) {
                         delete sessions[id];
-                        localStorage.setItem('baymax_chat_sessions', JSON.stringify(sessions));
+                        localStorage.setItem('zenvi_chat_sessions', JSON.stringify(sessions));
                         
                         // Clear backend state (best effort)
                         fetch('/api/clear', {

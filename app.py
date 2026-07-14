@@ -5,7 +5,9 @@ import markdown
 import edge_tts
 import shutil
 from fastapi import FastAPI, HTTPException, Request, Response, File, UploadFile, Form
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, RedirectResponse
+from starlette.middleware.sessions import SessionMiddleware
+import auth
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -20,8 +22,22 @@ class HealthFact(BaseModel):
 class FactsResponse(BaseModel):
     entries: List[HealthFact]
 
+class VitalEntry(BaseModel):
+    date: str
+    heart_rate: float = None
+    blood_pressure: str = None
+    blood_sugar: float = None
+    temperature: float = None
+    weight: float = None
+    symptoms: List[str] = []
+    notes: str = None
+
+class VitalsAnalysisRequest(BaseModel):
+    vitals: List[VitalEntry]
+    language: str = "en"
+
 # Setup FastAPI App
-app = FastAPI(title="Baymax AI - Healthcare Companion")
+app = FastAPI(title="Zenvi AI - Healthcare Companion")
 
 # Mount templates directory for rendering index.html
 templates = Jinja2Templates(directory="templates")
@@ -42,6 +58,12 @@ if os.path.exists(".env"):
                 key, val = line.strip().split("=", 1)
                 os.environ[key.strip()] = val.strip().strip('"').strip("'")
 
+# Add Session Middleware for secure authentication
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.environ.get("SESSION_SECRET_KEY", "zenvi-secret-key-change-this")
+)
+
 # Configure Gemini Client
 API_KEY = os.environ.get("GEMINI_API_KEY")
 if not API_KEY:
@@ -52,9 +74,9 @@ client = genai.Client(api_key=API_KEY)
 chat_sessions = {}
 
 SYSTEM_INSTRUCTION = (
-    "You are Baymax AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
+    "You are Zenvi AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
     "You are fully bilingual and can understand and respond in English and Hindi. By default, your natural response language is English. You MUST respond in English for all conversation turns, including the first response after the user provides their name, unless the user explicitly initiates the conversation in Hindi, speaks/types in Hindi, or provides their input in Hindi. Maintain the same warm, caring tone and structured diagnostic/treatment guidance in both languages.\n"
-    "DO NOT introduce yourself or say 'Hello, I am Baymax' or similar greeting lines on every turn. Only greet the user in the initial greeting (which is handled automatically). For all subsequent turns, dive directly into the answer or symptom analysis without repeating greetings or introductions.\n"
+    "DO NOT introduce yourself or say 'Hello, I am Zenvi' or similar greeting lines on every turn. Only greet the user in the initial greeting (which is handled automatically). For all subsequent turns, dive directly into the answer or symptom analysis without repeating greetings or introductions.\n"
     "The conversation starts with the user being asked for their name. Once they tell you their name, capture and remember it. Address them by their name warmly in your first response (in English if their name/response is in English characters, e.g. 'Hello Vicky, I am here to help you.'; only use Hindi if they explicitly wrote their name or response in Hindi/Devanagari script, e.g. 'नमस्ते विक्की, मैं आपकी मदद करने के लिए यहाँ हूँ।') and refer to their name naturally throughout the conversation turns.\n"
     "When evaluating symptoms or pain, guide the patient systematically using the clinical SOCRATES protocol, asking clarifying questions one-at-a-time where relevant to assess: Site, Onset, Character, Radiation, Associations, Time course, Exacerbating/Relieving factors, and Severity.\n"
     "When a user asks for medicines, symptom relief, or medical advice, you must directly recommend suitable standard over-the-counter (OTC) medicines (e.g., Paracetamol, Ibuprofen, Loperamide, Cetirizine, Antacids, Cough Syrup, etc.).\n"
@@ -91,9 +113,9 @@ def get_system_instruction(language: str) -> str:
         )
         
     return (
-        f"You are Baymax AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
+        f"You are Zenvi AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
         f"{lang_clause}\n"
-        "DO NOT introduce yourself or say 'Hello, I am Baymax' or similar greeting lines on every turn. Only greet the user in the initial greeting (which is handled automatically). For all subsequent turns, dive directly into the answer or symptom analysis without repeating greetings or introductions.\n"
+        "DO NOT introduce yourself or say 'Hello, I am Zenvi' or similar greeting lines on every turn. Only greet the user in the initial greeting (which is handled automatically). For all subsequent turns, dive directly into the answer or symptom analysis without repeating greetings or introductions.\n"
         "The conversation starts with the user being asked for their name. Once they tell you their name, capture and remember it. Address them by their name warmly in your first response (in English if their name/response is in English characters, e.g. 'Hello Vicky, I am here to help you.'; only use Hindi if they explicitly wrote their name or response in Hindi/Devanagari script, e.g. 'नमस्ते विक्की, मैं आपकी मदद करने के लिए यहाँ हूँ।') and refer to their name naturally throughout the conversation turns.\n"
         "When evaluating symptoms or pain, guide the patient systematically using the clinical SOCRATES protocol, asking clarifying questions one-at-a-time where relevant to assess: Site, Onset, Character, Radiation, Associations, Time course, Exacerbating/Relieving factors, and Severity.\n"
         "When a user asks for medicines, symptom relief, or medical advice, you must directly recommend suitable standard over-the-counter (OTC) medicines (e.g., Paracetamol, Ibuprofen, Loperamide, Cetirizine, Antacids, Cough Syrup, etc.).\n"
@@ -178,34 +200,123 @@ class ChatRequest(BaseModel):
 class ClearRequest(BaseModel):
     session_id: str
 
+# Authentication Routes
+@app.get("/login", response_class=HTMLResponse)
+async def get_login(request: Request, error: str = None, message: str = None):
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"error": error, "message": message}
+    )
+
+@app.post("/login")
+async def post_login(
+    request: Request,
+    email: str = Form(...)
+):
+    if auth.verify_user(email):
+        canonical_username = auth.get_username_by_identifier(email)
+        request.session["username"] = canonical_username
+        return RedirectResponse(url="/home", status_code=303)
+    
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"error": "No account associated with this email address.", "email": email}
+    )
+
+@app.get("/register", response_class=HTMLResponse)
+async def get_register(request: Request, error: str = None):
+    return templates.TemplateResponse(
+        request=request,
+        name="register.html",
+        context={"error": error}
+    )
+
+@app.post("/register")
+async def post_register(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...)
+):
+    success, message = auth.create_user(username, email)
+    if success:
+        return RedirectResponse(url="/login?message=Account+created+successfully.+Please+sign+in.", status_code=303)
+        
+    return templates.TemplateResponse(
+        request=request,
+        name="register.html",
+        context={"error": message, "username": username, "email": email}
+    )
+
+@app.get("/logout")
+async def get_logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/login?message=Logged+out+successfully.", status_code=303)
+
+# Protected Page Routes
 @app.get("/", response_class=HTMLResponse)
 async def get_home(request: Request):
-    """
-    Serves the landing page dashboard.
-    """
-    return templates.TemplateResponse(request=request, name="home.html")
+    if not request.session.get("username"):
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse(request=request, name="home.html", context={"username": request.session.get("username")})
 
 @app.get("/home", response_class=HTMLResponse)
 async def get_home_alias(request: Request):
-    """
-    Serves the landing page dashboard (alias /home).
-    """
-    return templates.TemplateResponse(request=request, name="home.html")
+    if not request.session.get("username"):
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse(request=request, name="home.html", context={"username": request.session.get("username")})
 
 @app.get("/consult", response_class=HTMLResponse)
 async def get_consult(request: Request):
-    """
-    Serves the consultation session page.
-    """
+    if not request.session.get("username"):
+        return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse(request=request, name="consult.html")
 
+@app.get("/monitor", response_class=HTMLResponse)
+async def get_monitor(request: Request):
+    if not request.session.get("username"):
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse(request=request, name="monitor.html")
+
+# Profile API Routes
+@app.get("/api/profile")
+async def api_get_profile(request: Request):
+    username = request.session.get("username")
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    success, profile = auth.get_user_profile(username)
+    if success:
+        return JSONResponse(content=profile)
+    else:
+        raise HTTPException(status_code=500, detail=profile.get("message", "Database error"))
+
+class LinkEmailRequest(BaseModel):
+    email: str
+
+@app.post("/api/profile/link-email")
+async def api_link_email(request: Request, body: LinkEmailRequest):
+    username = request.session.get("username")
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    success, message = auth.link_email(username, body.email)
+    if success:
+        return JSONResponse(content={"success": True, "message": message})
+    else:
+        raise HTTPException(status_code=400, detail=message)
+
 @app.post("/api/chat")
-async def chat_endpoint(request: ChatRequest):
+async def chat_endpoint(raw_request: Request, request: ChatRequest):
     """
     Accepts conversational prompt from the frontend, queries Gemini 2.5 Flash,
     maintains multi-turn context, and splits the response into display-ready HTML
     and speaker-ready clean text.
     """
+    if not raw_request.session.get("username"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
     session_id = request.session_id
     message_content = request.message.strip()
     language = request.language.strip() if request.language else "en-US"
@@ -318,11 +429,121 @@ async def chat_endpoint(request: ChatRequest):
         print(f"Error handling chat request for session {session_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
+@app.post("/api/analyze-vitals")
+async def analyze_vitals_endpoint(raw_request: Request, request: VitalsAnalysisRequest):
+    """
+    Accepts health vitals and notes logs, constructs a medical summary prompt,
+    sends it to Gemini with fallback/retry mechanics, and returns a detailed clinical review.
+    """
+    if not raw_request.session.get("username"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    if not request.vitals:
+        raise HTTPException(status_code=400, detail="Vitals log history is empty.")
+
+    vitals_summary = []
+    for entry in request.vitals:
+        details = [f"- Date: {entry.date}"]
+        if entry.heart_rate is not None:
+            details.append(f"  Heart Rate: {entry.heart_rate} bpm")
+        if entry.blood_pressure:
+            details.append(f"  Blood Pressure: {entry.blood_pressure}")
+        if entry.blood_sugar is not None:
+            details.append(f"  Blood Sugar: {entry.blood_sugar} mg/dL")
+        if entry.temperature is not None:
+            details.append(f"  Temperature: {entry.temperature} °F")
+        if entry.weight is not None:
+            details.append(f"  Weight: {entry.weight} kg")
+        if entry.symptoms:
+            details.append(f"  Symptoms: {', '.join(entry.symptoms)}")
+        if entry.notes:
+            details.append(f"  Daily Notes: {entry.notes}")
+        vitals_summary.append("\n".join(details))
+    
+    vitals_text = "\n\n".join(vitals_summary)
+
+    if request.language and request.language.startswith("hi"):
+        system_instruction = (
+            "You are Zenvi AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
+            "The user has requested the analysis in Hindi.\n"
+            "You MUST respond, explain, prescribe, and guide the user in Hindi ONLY using standard Devanagari script.\n"
+            "Format your diagnostic assessment strictly into these distinct bold markdown headings:\n"
+            "**निदान अवलोकन (Diagnostic Overview)**\n"
+            "**महत्वपूर्ण लक्षण मूल्यांकन (Vital Signs Assessment)**\n"
+            "**अनुशंसित राहत और उपाय (Recommended OTC Relief / Next Steps)**\n"
+            "**आपातकालीन चेतावनी संकेत (Emergency Warning Signs - Red Flags)**\n"
+            "Analyze the vitals log provided by the user. If they are normal, reassure them. If any vitals are anomalous (e.g. high BP/heart rate), guide them on standard, comforting lifestyle recommendations, daily scheduling for standard over-the-counter support if needed, and point out when to seek immediate medical attention.\n"
+            "Write your response in spoken text style, clean and directly readable."
+        )
+        prompt = (
+            f"यहाँ रोगी के स्वास्थ्य लॉग और महत्वपूर्ण माप दिए गए हैं:\n\n{vitals_text}\n\n"
+            "कृपया इस डेटा का विश्लेषण करें और ज़ेन्वी के रूप में हिंदी में प्रतिक्रिया दें।"
+        )
+    else:
+        system_instruction = (
+            "You are Zenvi AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
+            "You MUST respond, explain, prescribe, and guide the user in English ONLY.\n"
+            "Format your diagnostic assessment strictly into these distinct bold markdown headings:\n"
+            "**Diagnostic Overview**\n"
+            "**Vital Signs Assessment**\n"
+            "**Recommended OTC Relief / Next Steps**\n"
+            "**Emergency Warning Signs (Red Flags)**\n"
+            "Analyze the vitals log provided by the user. If they are normal, reassure them. If any vitals are anomalous (e.g. high BP/heart rate), guide them on standard, comforting lifestyle recommendations, daily scheduling for standard over-the-counter support (such as paracetamol/ibuprofen) in a markdown table if medications are suggested, and point out when to seek immediate medical attention.\n"
+            "Write your response in spoken text style, clean and directly readable."
+        )
+        prompt = (
+            f"Here are the patient's logged health vitals and metrics:\n\n{vitals_text}\n\n"
+            "Please analyze this trend data and provide your comforting clinical assessment as Zenvi."
+        )
+
+    model_index = 0
+    max_retries = 2
+    retry_delay = 2.0
+    raw_text = ""
+
+    while True:
+        model_name = MODEL_ORDER[model_index]
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.7,
+                )
+            )
+            raw_text = response.text
+            break
+        except Exception as e:
+            error_str = str(e)
+            print(f"Vitals analysis error using {model_name}: {error_str}")
+            if "429" in error_str or "503" in error_str:
+                if model_index < len(MODEL_ORDER) - 1:
+                    model_index += 1
+                    continue
+                if max_retries > 0:
+                    time.sleep(retry_delay)
+                    max_retries -= 1
+                    continue
+            raise HTTPException(status_code=500, detail=f"Gemini generation failed: {error_str}")
+
+    display_html = markdown.markdown(raw_text, extensions=['tables', 'fenced_code'])
+    tts_text = clean_text_for_tts(raw_text)
+
+    return {
+        "raw_text": raw_text,
+        "display_html": display_html,
+        "tts_text": tts_text
+    }
+
 @app.post("/api/clear")
-async def clear_endpoint(request: ClearRequest):
+async def clear_endpoint(raw_request: Request, request: ClearRequest):
     """
     Resets the conversation history for a given session.
     """
+    if not raw_request.session.get("username"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
     session_id = request.session_id
     if session_id in chat_sessions:
         # Delete all tracked uploaded files from Gemini cloud storage
@@ -338,6 +559,7 @@ async def clear_endpoint(request: ClearRequest):
 
 @app.post("/api/upload")
 async def upload_endpoint(
+    raw_request: Request,
     session_id: str = Form(...),
     message: str = Form(""),
     file: UploadFile = File(...),
@@ -347,6 +569,8 @@ async def upload_endpoint(
     Accepts PDF file upload, stores it temporarily, uploads it to Gemini via the Files API,
     sends it to the multi-turn session chat, cleans up, and returns display HTML and TTS speech text.
     """
+    if not raw_request.session.get("username"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
@@ -483,11 +707,13 @@ facts_cache = {
 }
 
 @app.get("/api/facts")
-async def get_facts():
+async def get_facts(raw_request: Request):
     """
     Returns 5 interesting, scientifically accurate health facts dynamically generated by Gemini
     and keyworded for dynamic image retrieval from LoremFlickr.
     """
+    if not raw_request.session.get("username"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
     current_time = time.time()
     # Cache for 24 hours (86400 seconds)
     if facts_cache["data"] and (current_time - facts_cache["timestamp"] < 86400):
@@ -572,6 +798,7 @@ async def get_facts():
 
 @app.post("/api/upload-image")
 async def upload_image_endpoint(
+    raw_request: Request,
     session_id: str = Form(...),
     message: str = Form("Please analyze this photo."),
     file: UploadFile = File(...),
@@ -581,6 +808,8 @@ async def upload_image_endpoint(
     Accepts captured image upload, converts it to bytes, sends it to the Gemini session,
     and returns display HTML and TTS speech text.
     """
+    if not raw_request.session.get("username"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Only image files are supported")
 
@@ -684,16 +913,18 @@ async def upload_image_endpoint(
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 @app.get("/api/tts")
-async def tts_endpoint(text: str, voice: str = "en-US-AndrewNeural"):
+async def tts_endpoint(raw_request: Request, text: str, voice: str = "en-US-AndrewNeural"):
     """
     Synthesizes clean text query into a high-quality neural voice using Edge TTS,
     returning the generated audio file back to the browser immediately.
     """
+    if not raw_request.session.get("username"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
     if not text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
 
     try:
-        # Pacing and pitch matching original Baymax (slow, steady, deep, comforting male voice)
+        # Pacing and pitch matching original Zenvi (slow, steady, deep, comforting male voice)
         rate = "-10%"
         pitch = "-5Hz"
         
