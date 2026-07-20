@@ -1,6 +1,6 @@
-# Walkthrough - Baymax AI
+# Walkthrough - Zenvi AI
 
-This walkthrough documents the implementation and verification details of **Baymax AI**, a speech-to-speech AI Health Assistant built with FastAPI and Google Gemini 2.5 Flash.
+This walkthrough documents the implementation and verification details of **Zenvi AI**, a speech-to-speech AI Health Assistant built with FastAPI and Google Gemini 2.5 Flash.
 
 ## Changes Made
 
