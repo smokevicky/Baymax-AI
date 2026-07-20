@@ -281,13 +281,13 @@ async def get_home_alias(request: Request):
 async def get_consult(request: Request):
     if not request.session.get("username"):
         return RedirectResponse(url="/login", status_code=303)
-    return templates.TemplateResponse(request=request, name="consult.html")
+    return templates.TemplateResponse(request=request, name="consult.html", context={"username": request.session.get("username")})
 
 @app.get("/monitor", response_class=HTMLResponse)
 async def get_monitor(request: Request):
     if not request.session.get("username"):
         return RedirectResponse(url="/login", status_code=303)
-    return templates.TemplateResponse(request=request, name="monitor.html")
+    return templates.TemplateResponse(request=request, name="monitor.html", context={"username": request.session.get("username")})
 
 # Profile API Routes
 @app.get("/api/profile")

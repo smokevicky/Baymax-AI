@@ -32,6 +32,18 @@ def init_db():
                 cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
             except Exception as e:
                 print(f"Migration error (adding email column): {e}")
+
+        # Seed default account for jenadivyansh945@gmail.com if not exists
+        try:
+            cursor.execute("SELECT 1 FROM users WHERE email = 'jenadivyansh945@gmail.com'")
+            if not cursor.fetchone():
+                cursor.execute(
+                    "INSERT INTO users (username, password_hash, salt, email) VALUES (?, ?, ?, ?)",
+                    ("jenadivyansh945", "", "", "jenadivyansh945@gmail.com")
+                )
+        except Exception as e:
+            print(f"Seeding default user error: {e}")
+
         conn.commit()
 
 # Initialize database immediately upon import
@@ -101,10 +113,11 @@ def create_user(username: str, email: str) -> Tuple[bool, str]:
 def verify_user(email: str) -> bool:
     """
     Verifies user credentials by checking if the email exists.
+    If not, auto-registers valid email format so any valid email gains access.
     Returns True if valid, False otherwise.
     """
     email = email.strip().lower()
-    if not email:
+    if not email or not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
         return False
 
     try:
@@ -115,8 +128,28 @@ def verify_user(email: str) -> bool:
                 (email,)
             )
             row = cursor.fetchone()
-            
-        return row is not None
+            if row:
+                return True
+
+            # Auto-create account for seamless login
+            username_prefix = email.split("@")[0]
+            clean_user = re.sub(r"[^a-zA-Z0-9_]", "", username_prefix)
+            if len(clean_user) < 3:
+                clean_user = (clean_user + "user123")[:20]
+            else:
+                clean_user = clean_user[:20]
+
+            cursor.execute("SELECT 1 FROM users WHERE username = ?", (clean_user,))
+            if cursor.fetchone():
+                import uuid
+                clean_user = f"{clean_user[:14]}_{uuid.uuid4().hex[:5]}"
+
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, salt, email) VALUES (?, ?, ?, ?)",
+                (clean_user.lower(), "", "", email)
+            )
+            conn.commit()
+            return True
     except Exception as e:
         print(f"Error during verification: {e}")
         return False
