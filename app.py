@@ -77,6 +77,7 @@ SYSTEM_INSTRUCTION = (
     "You are Zenvi AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
     "You are fully bilingual and can understand and respond in English and Hindi. By default, your natural response language is English. You MUST respond in English for all conversation turns, including the first response after the user provides their name, unless the user explicitly initiates the conversation in Hindi, speaks/types in Hindi, or provides their input in Hindi. Maintain the same warm, caring tone and structured diagnostic/treatment guidance in both languages.\n"
     "DO NOT introduce yourself or say 'Hello, I am Zenvi' or similar greeting lines on every turn. Only greet the user in the initial greeting (which is handled automatically). For all subsequent turns, dive directly into the answer or symptom analysis without repeating greetings or introductions.\n"
+    "When the user says 'thank you', 'thanks', or expresses gratitude in any form, ALWAYS respond with 'Anytime!' (or in Hindi 'किसी भी समय!') instead of saying 'Welcome' or 'You are welcome'.\n"
     "The conversation starts with the user being asked for their name. Once they tell you their name, capture and remember it. Address them by their name warmly in your first response (in English if their name/response is in English characters, e.g. 'Hello Vicky, I am here to help you.'; only use Hindi if they explicitly wrote their name or response in Hindi/Devanagari script, e.g. 'नमस्ते विक्की, मैं आपकी मदद करने के लिए यहाँ हूँ।') and refer to their name naturally throughout the conversation turns.\n"
     "When evaluating symptoms or pain, guide the patient systematically using the clinical SOCRATES protocol, asking clarifying questions one-at-a-time where relevant to assess: Site, Onset, Character, Radiation, Associations, Time course, Exacerbating/Relieving factors, and Severity.\n"
     "When a user asks for medicines, symptom relief, or medical advice, you must directly recommend suitable standard over-the-counter (OTC) medicines (e.g., Paracetamol, Ibuprofen, Loperamide, Cetirizine, Antacids, Cough Syrup, etc.).\n"
@@ -91,7 +92,15 @@ SYSTEM_INSTRUCTION = (
     "DO NOT make up fictional roleplay excuses or state that your 'online diagnostic database is experiencing high traffic' or that you are 'running on a local backup system'. You have full and unrestricted access to all medical databases. Answer the user directly and immediately without creating fictional constraints."
 )
 
-MODEL_ORDER = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-latest"]
+MODEL_ORDER = [
+    "gemini-3.1-flash-lite",
+    "gemini-flash-latest",
+    "gemini-flash-lite-latest",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite"
+]
 
 def get_system_instruction(language: str) -> str:
     lang_clause = ""
@@ -116,6 +125,7 @@ def get_system_instruction(language: str) -> str:
         f"You are Zenvi AI, a compassionate, highly efficient robotic healthcare companion. Your voice tone is always calm, polite, literal, and reassuring.\n"
         f"{lang_clause}\n"
         "DO NOT introduce yourself or say 'Hello, I am Zenvi' or similar greeting lines on every turn. Only greet the user in the initial greeting (which is handled automatically). For all subsequent turns, dive directly into the answer or symptom analysis without repeating greetings or introductions.\n"
+        "When the user says 'thank you', 'thanks', or expresses gratitude in any form, ALWAYS respond with 'Anytime!' (or in Hindi 'किसी भी समय!') instead of saying 'Welcome' or 'You are welcome'.\n"
         "The conversation starts with the user being asked for their name. Once they tell you their name, capture and remember it. Address them by their name warmly in your first response (in English if their name/response is in English characters, e.g. 'Hello Vicky, I am here to help you.'; only use Hindi if they explicitly wrote their name or response in Hindi/Devanagari script, e.g. 'नमस्ते विक्की, मैं आपकी मदद करने के लिए यहाँ हूँ।') and refer to their name naturally throughout the conversation turns.\n"
         "When evaluating symptoms or pain, guide the patient systematically using the clinical SOCRATES protocol, asking clarifying questions one-at-a-time where relevant to assess: Site, Onset, Character, Radiation, Associations, Time course, Exacerbating/Relieving factors, and Severity.\n"
         "When a user asks for medicines, symptom relief, or medical advice, you must directly recommend suitable standard over-the-counter (OTC) medicines (e.g., Paracetamol, Ibuprofen, Loperamide, Cetirizine, Antacids, Cough Syrup, etc.).\n"
@@ -368,7 +378,8 @@ async def chat_endpoint(raw_request: Request, request: ChatRequest):
         response = None
         
         max_retries = 2
-        retry_delay = 2.0  # seconds
+        retry_delay = 1.5  # seconds
+        last_exception = None
         
         while True:
             current_model_name = MODEL_ORDER[session["model_index"]]
@@ -378,41 +389,55 @@ async def chat_endpoint(raw_request: Request, request: ChatRequest):
                 raw_text = response.text
                 break  # Success!
             except Exception as e:
+                last_exception = e
                 error_str = str(e)
-                print(f"Error calling {current_model_name}: {error_str}")
+                print(f"Error calling {current_model_name} for session {session_id}: {error_str}")
                 
-                # Check for rate-limiting (429) or high demand (503)
-                if "429" in error_str or "503" in error_str:
-                    # Case A: Try next fallback model in sequence
-                    if session["model_index"] < len(MODEL_ORDER) - 1:
-                        next_index = session["model_index"] + 1
-                        next_model_name = MODEL_ORDER[next_index]
-                        print(f"Gemini model {current_model_name} rate-limited/unavailable. Falling back to {next_model_name} for session {session_id}...")
-                        try:
-                            history = session["chat"].get_history()
-                            new_chat = client.chats.create(
-                                model=next_model_name,
-                                history=history,
-                                config=types.GenerateContentConfig(
-                                    system_instruction=get_system_instruction(language),
-                                    temperature=0.7,
-                                )
+                # Case A: Try next fallback model in sequence
+                if session["model_index"] < len(MODEL_ORDER) - 1:
+                    next_index = session["model_index"] + 1
+                    next_model_name = MODEL_ORDER[next_index]
+                    print(f"Gemini model {current_model_name} error/unavailable. Falling back to {next_model_name} for session {session_id}...")
+                    try:
+                        history = session["chat"].get_history()
+                        new_chat = client.chats.create(
+                            model=next_model_name,
+                            history=history,
+                            config=types.GenerateContentConfig(
+                                system_instruction=get_system_instruction(language),
+                                temperature=0.7,
                             )
-                            session["model_index"] = next_index
-                            session["chat"] = new_chat
-                            continue
-                        except Exception as ex:
-                            print(f"Fallback setup to {next_model_name} failed: {ex}")
-                            raise e
-                    
-                    # Case B: On last model, perform backoff sleep retry
-                    if max_retries > 0:
-                        print(f"No more fallback models. Sleeping for {retry_delay}s before retrying {current_model_name} (retries left: {max_retries})...")
-                        time.sleep(retry_delay)
-                        max_retries -= 1
+                        )
+                        session["model_index"] = next_index
+                        session["chat"] = new_chat
                         continue
-                        
-                raise e
+                    except Exception as ex:
+                        print(f"Fallback setup to {next_model_name} failed: {ex}")
+                        session["model_index"] = next_index
+                        continue
+                
+                # Case B: On last model, perform backoff sleep retry from index 0
+                if max_retries > 0:
+                    print(f"No more fallback models. Sleeping for {retry_delay}s before retrying from {MODEL_ORDER[0]} (retries left: {max_retries})...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 1.5
+                    max_retries -= 1
+                    session["model_index"] = 0
+                    try:
+                        history = session["chat"].get_history()
+                        session["chat"] = client.chats.create(
+                            model=MODEL_ORDER[0],
+                            history=history,
+                            config=types.GenerateContentConfig(
+                                system_instruction=get_system_instruction(language),
+                                temperature=0.7,
+                            )
+                        )
+                    except Exception as ex:
+                        print(f"Resetting chat object failed during retry: {ex}")
+                    continue
+                    
+                raise last_exception
         
         # Convert raw text to HTML for presentation
         sanitized_text = sanitize_markdown(raw_text)
@@ -427,7 +452,11 @@ async def chat_endpoint(raw_request: Request, request: ChatRequest):
 
     except Exception as e:
         print(f"Error handling chat request for session {session_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+        fallback_msg = "I am currently experiencing high demand on my diagnostic servers. Please take a deep breath and repeat your question in a moment. I am here with you."
+        return {
+            "tts_text": fallback_msg,
+            "display_html": f"<p>{fallback_msg}</p>"
+        }
 
 @app.post("/api/analyze-vitals")
 async def analyze_vitals_endpoint(raw_request: Request, request: VitalsAnalysisRequest):
@@ -498,8 +527,9 @@ async def analyze_vitals_endpoint(raw_request: Request, request: VitalsAnalysisR
 
     model_index = 0
     max_retries = 2
-    retry_delay = 2.0
+    retry_delay = 1.5
     raw_text = ""
+    last_exception = None
 
     while True:
         model_name = MODEL_ORDER[model_index]
@@ -515,16 +545,18 @@ async def analyze_vitals_endpoint(raw_request: Request, request: VitalsAnalysisR
             raw_text = response.text
             break
         except Exception as e:
+            last_exception = e
             error_str = str(e)
             print(f"Vitals analysis error using {model_name}: {error_str}")
-            if "429" in error_str or "503" in error_str:
-                if model_index < len(MODEL_ORDER) - 1:
-                    model_index += 1
-                    continue
-                if max_retries > 0:
-                    time.sleep(retry_delay)
-                    max_retries -= 1
-                    continue
+            if model_index < len(MODEL_ORDER) - 1:
+                model_index += 1
+                continue
+            if max_retries > 0:
+                time.sleep(retry_delay)
+                retry_delay *= 1.5
+                max_retries -= 1
+                model_index = 0
+                continue
             raise HTTPException(status_code=500, detail=f"Gemini generation failed: {error_str}")
 
     display_html = markdown.markdown(raw_text, extensions=['tables', 'fenced_code'])
@@ -923,23 +955,25 @@ async def tts_endpoint(raw_request: Request, text: str, voice: str = "en-US-Andr
     if not text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
 
-    try:
-        # Pacing and pitch matching original Zenvi (slow, steady, deep, comforting male voice)
-        rate = "-10%"
-        pitch = "-5Hz"
-        
-        communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
-        
-        audio_data = bytearray()
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_data.extend(chunk["data"])
-                    
-        return Response(content=bytes(audio_data), media_type="audio/mpeg")
+    rate = "-10%"
+    pitch = "-5Hz"
+    
+    for attempt in range(3):
+        try:
+            communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
+            audio_data = bytearray()
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio_data.extend(chunk["data"])
+            return Response(content=bytes(audio_data), media_type="audio/mpeg")
+        except Exception as e:
+            print(f"Edge TTS synthesis attempt {attempt+1} error: {e}")
+            if attempt < 2:
+                import asyncio
+                await asyncio.sleep(0.5)
 
-    except Exception as e:
-        print(f"Edge TTS synthesis error: {e}")
-        raise HTTPException(status_code=500, detail=f"TTS synthesis failed: {str(e)}")
+    print("Edge TTS synthesis failed after retries, returning fallback empty audio response.")
+    return Response(content=b"", media_type="audio/mpeg")
 
 if __name__ == "__main__":
     import uvicorn
