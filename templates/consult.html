@@ -460,6 +460,39 @@
             transform: scale(1.05);
         }
 
+        .mic-trigger-btn {
+            background-color: #faf9f6;
+            color: #0f172a;
+            border: 1px solid var(--border-color);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            align-self: center;
+        }
+        .mic-trigger-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: scale(1.05);
+        }
+        .mic-trigger-btn.listening {
+            background-color: var(--baymax-red);
+            color: white !important;
+            border-color: var(--baymax-red) !important;
+            box-shadow: 0 0 14px rgba(211, 47, 47, 0.6);
+            animation: mic-pulse-ring 1.4s infinite ease-in-out;
+        }
+        @keyframes mic-pulse-ring {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
+            70% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+        }
+
         .input-bar input {
             flex: 1;
             padding: 12px 20px;
@@ -1383,8 +1416,17 @@
                                 <circle cx="12" cy="13" r="4"></circle>
                             </svg>
                         </button>
+
+                        <button type="button" class="mic-trigger-btn" id="micTriggerBtn" title="Tap microphone to speak on mobile/desktop" onclick="toggleMobileMic(event)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                        </button>
                     </div>
-                    <input type="text" id="userInput" placeholder="Type a message or symptom here..." autocomplete="off">
+                    <input type="text" id="userInput" placeholder="Type or tap microphone to speak..." autocomplete="off">
                     <button type="submit" class="btn-send">Send</button>
                 </form>
             </div>
@@ -1568,12 +1610,16 @@
                 isListening = true;
                 setFaceState('idle'); // Start as black idle when mic turns on
                 accumulatedTranscript = '';
+                const micBtn = document.getElementById('micTriggerBtn');
+                if (micBtn) micBtn.classList.add('listening');
             };
 
             recognition.onspeechstart = () => {
                 if (isAwake && !isSpeaking) {
                     setFaceState('listening'); // Glow green when user speaks
                 }
+                const micBtn = document.getElementById('micTriggerBtn');
+                if (micBtn) micBtn.classList.add('listening');
             };
 
             recognition.onspeechend = () => {
@@ -1596,15 +1642,24 @@
 
                 if (interimTranscript.trim()) {
                     siriTooltip.innerText = "..." + interimTranscript.trim();
+                    const userInputEl = document.getElementById('userInput');
+                    if (userInputEl) {
+                        userInputEl.value = (accumulatedTranscript + ' ' + interimTranscript).trim();
+                    }
                 }
 
                 if (finalTranscript.trim()) {
                     accumulatedTranscript += ' ' + finalTranscript.trim();
+                    const userInputEl = document.getElementById('userInput');
+                    if (userInputEl) {
+                        userInputEl.value = accumulatedTranscript.trim();
+                    }
                     clearTimeout(silenceTimer);
                     silenceTimer = setTimeout(async () => {
                         const queryText = accumulatedTranscript.trim();
                         if (queryText) {
                             accumulatedTranscript = '';
+                            if (userInputEl) userInputEl.value = '';
                             appendMessage('user', queryText);
                             await sendQueryToBackend(queryText);
                         }
@@ -1614,8 +1669,10 @@
 
             recognition.onerror = (event) => {
                 console.warn('Speech recognition error:', event.error);
+                const micBtn = document.getElementById('micTriggerBtn');
+                if (micBtn) micBtn.classList.remove('listening');
                 if (event.error === 'not-allowed') {
-                    showError('Microphone permission denied. Please allow microphone access in your browser or type.');
+                    showError('Microphone permission denied. Please allow microphone access in your browser settings.');
                     autoRestartRecognition = false;
                     setFaceState('idle');
                 } else if (event.error === 'no-speech') {
@@ -1630,6 +1687,8 @@
 
             recognition.onend = () => {
                 isListening = false;
+                const micBtn = document.getElementById('micTriggerBtn');
+                if (micBtn) micBtn.classList.remove('listening');
                 if (autoRestartRecognition && isAwake && !isSpeaking) {
                     startRecognitionQuietly();
                 } else if (!isSpeaking) {
@@ -1639,6 +1698,26 @@
         } else {
             console.warn('Web Speech Recognition API is not supported on this browser.');
             showError('Speech recognition is not supported in this browser. Please type.');
+        }
+
+        function toggleMobileMic(e) {
+            if (e) e.preventDefault();
+            const micBtn = document.getElementById('micTriggerBtn');
+            
+            if (!isAwake) {
+                wakeUpBaymax();
+                return;
+            }
+            
+            if (isListening) {
+                stopListening();
+                setFaceState('idle');
+                if (micBtn) micBtn.classList.remove('listening');
+            } else {
+                stopSpeechQueue();
+                startListening();
+                if (micBtn) micBtn.classList.add('listening');
+            }
         }
 
         function setFaceState(state) {

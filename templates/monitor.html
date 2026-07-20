@@ -738,7 +738,18 @@
                         </div>
 
                         <div class="form-group full-width">
-                            <label for="vitalNotes">Daily Health Notes</label>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label for="vitalNotes" style="margin-bottom: 0;">Daily Health Notes</label>
+                                <button type="button" id="dictateNotesBtn" onclick="toggleNotesDictation(event)" style="background: rgba(211, 47, 47, 0.08); color: var(--baymax-red); border: 1px solid rgba(211, 47, 47, 0.2); padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                                    </svg>
+                                    <span id="dictateNotesLabel">Dictate Notes</span>
+                                </button>
+                            </div>
                             <textarea id="vitalNotes" rows="2" placeholder="Describe how you are feeling today..."></textarea>
                         </div>
                     </div>
@@ -1346,6 +1357,74 @@
                 }
             }
         });
+
+        // Notes Dictation logic for mobile & desktop
+        let notesRecognition = null;
+        let isDictatingNotes = false;
+
+        function toggleNotesDictation(e) {
+            if (e) e.preventDefault();
+            const btn = document.getElementById('dictateNotesBtn');
+            const label = document.getElementById('dictateNotesLabel');
+            const notesInput = document.getElementById('vitalNotes');
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Speech recognition is not supported in this browser.");
+                return;
+            }
+
+            if (isDictatingNotes && notesRecognition) {
+                notesRecognition.stop();
+                return;
+            }
+
+            notesRecognition = new SpeechRecognition();
+            notesRecognition.continuous = true;
+            notesRecognition.interimResults = true;
+            notesRecognition.lang = 'en-US';
+
+            notesRecognition.onstart = () => {
+                isDictatingNotes = true;
+                if (btn) {
+                    btn.style.background = 'var(--baymax-red)';
+                    btn.style.color = 'white';
+                }
+                if (label) label.textContent = 'Listening...';
+            };
+
+            notesRecognition.onresult = (event) => {
+                let text = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    text += event.results[i][0].transcript + ' ';
+                }
+                if (notesInput) notesInput.value = text.trim();
+            };
+
+            notesRecognition.onerror = (event) => {
+                console.warn('Notes dictation error:', event.error);
+                stopNotesDictation();
+            };
+
+            notesRecognition.onend = () => {
+                stopNotesDictation();
+            };
+
+            function stopNotesDictation() {
+                isDictatingNotes = false;
+                if (btn) {
+                    btn.style.background = 'rgba(211, 47, 47, 0.08)';
+                    btn.style.color = 'var(--baymax-red)';
+                }
+                if (label) label.textContent = 'Dictate Notes';
+            }
+
+            try {
+                notesRecognition.start();
+            } catch (err) {
+                console.error('Failed to start speech recognition:', err);
+            }
+        }
     </script>
 </body>
 </html>
