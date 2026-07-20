@@ -44,8 +44,8 @@ Built with **FastAPI** for a lightweight async backend, Google's modern **`googl
 
 ### 1. Clone & Navigate
 ```bash
-git clone https://github.com/smokevicky/Baymax-AI.git
-cd Baymax-AI
+git clone https://github.com/smokevicky/Zenvi-AI.git
+cd Zenvi-AI
 ```
 
 ### 2. Setup Virtual Environment
